@@ -3,97 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin - Transparansi Desa</title>
+    <title>Sistem Transparansi Dana Jalan Desa</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }
     </script>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased flex flex-col min-h-screen">
+<body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen">
 
-    <!-- Navbar Admin -->
-    <header class="bg-slate-800 text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <h1 class="text-base font-bold">Ruang Kerja Panitia</h1>
+    <div id="user-login-screen" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm space-y-4 text-center">
+            <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600 text-xl font-bold">
+                🌾
             </div>
-            <a href="/index.html" class="text-xs text-slate-400 hover:text-white transition-all">← Lihat Web Depan</a>
-        </div>
-    </header>
-
-    <main class="max-w-md w-full mx-auto px-4 py-4 flex-1 space-y-4 mb-16">
-        
-        <!-- SEKTOR AUTHENTICATION GOOGLE -->
-        <div id="auth-section" class="bg-white rounded-xl p-5 shadow-sm text-center space-y-3">
-            <h3 class="text-sm font-bold text-slate-700">Otorisasi Akun Google</h3>
-            <p class="text-xs text-slate-500">Anda wajib login menggunakan akun Google untuk memverifikasi hak akses pengelolaan anggaran desa.</p>
-            <button id="btn-login" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
-                Sign In dengan Google
+            <div>
+                <h3 class="text-base font-bold text-slate-800">Selamat Datang Warga Desa</h3>
+                <p class="text-xs text-slate-500 mt-1">Silakan masukkan nama Anda untuk melihat laporan transparansi dana swadaya.</p>
+            </div>
+            <input type="text" id="input-nama-warga" placeholder="Ketik Nama Anda..." class="w-full bg-slate-50 border border-slate-300 rounded-xl text-xs p-3 text-center focus:ring-2 focus:ring-emerald-500 outline-none font-semibold">
+            <button onclick="masukSebagaiWarga()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-3 rounded-xl shadow-md transition-all">
+                Masuk & Lihat Laporan
             </button>
-            <div id="user-info" class="hidden text-xs text-slate-600 bg-slate-50 p-2 rounded-lg border flex items-center justify-between">
-                <span id="user-email" class="font-medium"></span>
-                <button id="btn-logout" class="text-rose-600 font-bold hover:underline">Keluar</button>
-            </div>
         </div>
+    </div>
 
-        <!-- PANEL INTI (Akan Terbuka Setelah Login) -->
-        <div id="main-panel" class="hidden space-y-4">
-            
-            <!-- Pengaturan Sesi Musim -->
-            <div class="bg-white rounded-xl p-4 shadow-sm border space-y-3">
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">🛠️ Manajemen Sesi & Gaji</h3>
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-500 mb-1">Buat Musim Panen Baru:</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="nama-musim-baru" placeholder="Contoh: Rendeng 2026" class="flex-1 bg-slate-50 border rounded-lg text-xs p-2 focus:ring-1 focus:ring-emerald-500 outline-none">
-                        <input type="text" id="gaji-musim-baru" placeholder="Gaji Panitia (cth: 500.000)" class="w-1/3 bg-slate-50 border rounded-lg text-xs p-2 focus:ring-1 focus:ring-emerald-500 outline-none formatting-ribuan">
+    <div id="main-dashboard-content" class="hidden flex flex-col min-h-screen">
+        <header class="bg-emerald-600 text-white shadow-md sticky top-0 z-40">
+            <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="p-2 bg-emerald-700 rounded-lg">
+                        <svg class="w-6 h-6 text-emerald-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
                     </div>
-                    <button id="btn-buat-musim" class="w-full mt-2 bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold py-2 rounded-lg transition">Aktifkan Musim Baru</button>
+                    <div>
+                        <h1 class="text-base font-bold">DanaJalan Desa</h1>
+                        <p id="salam-warga" class="text-[11px] text-emerald-200 font-medium">Halo, Warga</p>
+                    </div>
                 </div>
-                <div class="pt-2 border-t flex justify-between items-center text-xs">
-                    <span class="text-slate-500">Musim Aktif Sekarang:</span>
-                    <span id="label-musim-aktif" class="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">-</span>
+                <a href="/admin.html" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all">
+                    Menu Panitia 🔑
+                </a>
+            </div>
+        </header>
+
+        <main class="max-w-md w-full mx-auto px-4 py-4 flex-1 space-y-4 mb-16">
+            <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-200 flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-500 uppercase">Pilih Sesi Musim:</span>
+                <select id="select-musim" class="bg-slate-100 border border-slate-300 rounded-lg text-xs font-semibold p-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </select>
+            </div>
+
+            <div class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-2xl p-5 shadow-md relative overflow-hidden">
+                <p class="text-xs font-medium uppercase tracking-wider text-emerald-200">Sisa Saldo Kas Musim Ini</p>
+                <h2 id="saldo-utama" class="text-3xl font-extrabold mt-1">Rp 0</h2>
+                <div class="mt-4 pt-3 border-t border-emerald-500/30 flex justify-between text-xs">
+                    <div>
+                        <p class="opacity-75">Total Masuk (Bawon)</p>
+                        <p id="total-masuk" class="font-semibold text-sm">Rp 0</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="opacity-75">Total Pengeluaran</p>
+                        <p id="total-keluar" class="font-semibold text-sm">Rp 0</p>
+                    </div>
                 </div>
-                <button id="btn-potong-gaji" class="w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-2 rounded-lg transition flex items-center justify-center gap-1">
-                    💰 Potong Gaji Panitia Sesi Ini
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-start gap-2.5">
+                <span class="text-xl">📋</span>
+                <div>
+                    <h4 class="text-xs font-bold text-amber-800 uppercase">Kesepakatan Operasional Panitia</h4>
+                    <p class="text-xs text-amber-700 mt-0.5">Anggaran insentif/gaji pengelola yang disepakati bersama adalah sebesar <strong id="info-gaji-text">Rp 0</strong> per musim panen dan dipotong secara berkala pada sistem kas keluar.</p>
+                </div>
+            </div>
+
+            <div class="flex bg-slate-200 p-1 rounded-xl gap-1">
+                <button id="btn-masuk" onclick="switchTab('masuk')" class="flex-1 text-center py-2 text-xs font-semibold rounded-lg bg-white text-emerald-700 shadow-sm transition-all">
+                    Setoran Panen (+)
+                </button>
+                <button id="btn-keluar" onclick="switchTab('keluar')" class="flex-1 text-center py-2 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 transition-all">
+                    Penggunaan Dana (-)
                 </button>
             </div>
 
-            <!-- Formulir Pencatatan Dana Masuk (Panen) -->
-            <div class="bg-white rounded-xl p-4 shadow-sm border space-y-3">
-                <h3 class="text-xs font-bold text-emerald-700 uppercase tracking-wider">📥 Input Setoran Kas (Bawon 10%)</h3>
-                <div class="space-y-2">
-                    <input type="text" id="in-nama-combine" placeholder="Nama Pengusaha Combine" class="w-full bg-slate-50 border rounded-lg text-xs p-2 outline-none">
-                    <input type="text" id="in-lokasi" placeholder="Lokasi Hamparan Sawah (cth: Sawah Etan)" class="w-full bg-slate-50 border rounded-lg text-xs p-2 outline-none">
-                    <div class="flex gap-2">
-                        <input type="number" id="in-karung" placeholder="Jumlah Karung" class="w-1/2 bg-slate-50 border rounded-lg text-xs p-2 outline-none">
-                        <input type="text" id="in-nominal-masuk" placeholder="Total Uang (Otomatis)" class="w-1/2 bg-slate-100 border rounded-lg text-xs p-2 outline-none font-bold text-emerald-700" readonly>
-                    </div>
-                    <p class="text-[10px] text-slate-400 font-medium">*Rumus Otomatis: Jumlah Karung x Rp 5.000 sesuai kesepakatan.</p>
-                    <button id="btn-simpan-masuk" class="w-full bg-emerald-600 hover:bg-emerald-600 text-white text-xs font-bold py-2.5 rounded-lg shadow-sm transition">Simpan Setoran Panen</button>
-                </div>
+            <div id="list-container" class="space-y-2">
             </div>
+        </main>
 
-            <!-- Formulir Pencatatan Dana Keluar (Belanja Material) -->
-            <div class="bg-white rounded-xl p-4 shadow-sm border space-y-3">
-                <h3 class="text-xs font-bold text-rose-700 uppercase tracking-wider">📤 Input Pengeluaran (Belanja Material / Operasional)</h3>
-                <div class="space-y-2">
-                    <input type="text" id="out-nama" placeholder="Nama Keperluan / Nama Toko" class="w-full bg-slate-50 border rounded-lg text-xs p-2 outline-none">
-                    <input type="text" id="out-keterangan" placeholder="Keterangan Detail (cth: Beli Semen 50 Sak)" class="w-full bg-slate-50 border rounded-lg text-xs p-2 outline-none">
-                    <input type="text" id="out-nominal" placeholder="Nominal Pengeluaran (Rupiah)" class="w-full bg-slate-50 border rounded-lg text-xs p-2 outline-none formatting-ribuan">
-                    <button id="btn-simpan-keluar" class="w-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2.5 rounded-lg shadow-sm transition">Simpan Pengeluaran</button>
-                </div>
-            </div>
+        <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400 fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto">
+            <p>© 2026 Swadaya Masyarakat Mandiri</p>
+        </footer>
+    </div>
 
-        </div>
-    </main>
-
-    <!-- Firebase System Modules -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "process.env.NEXT_PUBLIC_FIREBASE_API_KEY",
@@ -106,187 +109,129 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
 
-        const whitelistAdmins = "process.env.NEXT_PUBLIC_ALLOWED_ADMIN_EMAILS".split(",").map(e => e.trim());
+        let currentTab = 'masuk';
+        let semuaTransaksi = [];
 
-        let statusUserSekarang = null;
-        let idMusimAktif = "";
-        let namaMusimAktif = "";
-        let nominalGajiAktif = 0;
-
-        // Auto Pemisah Ribuan Real-time saat input diketik
-        document.querySelectorAll('.formatting-ribuan').forEach(input => {
-            input.addEventListener('input', function(e) {
-                let cleanValue = this.value.replace(/\D/g, "");
-                if(cleanValue) {
-                    this.value = Number(cleanValue).toLocaleString('id-ID');
-                } else {
-                    this.value = "";
-                }
-            });
-        });
-
-        // Hitung otomatis dana masuk karung x 5.000
-        document.getElementById('in-karung').addEventListener('input', function() {
-            let karung = Number(this.value) || 0;
-            let hasil = karung * 5000;
-            document.getElementById('in-nominal-masuk').value = hasil.toLocaleString('id-ID');
-        });
-
-        // Autentikasi Google
-        document.getElementById('btn-login').addEventListener('click', () => {
-            signInWithPopup(auth, provider).catch(err => alert("Gagal Login: " + err.message));
-        });
-
-        document.getElementById('btn-logout').addEventListener('click', () => {
-            signOut(auth);
-        });
-
-        onAuthStateChanged(auth, (user) => {
-            const authSection = document.getElementById('auth-section');
-            const mainPanel = document.getElementById('main-panel');
-            const btnLogin = document.getElementById('btn-login');
-            const userInfo = document.getElementById('user-info');
-            const userEmailSpan = document.getElementById('user-email');
-
-            if (user) {
-                statusUserSekarang = user;
-                btnLogin.classList.add('hidden');
-                userInfo.classList.remove('hidden');
-                userEmailSpan.textContent = user.email;
-                mainPanel.classList.remove('hidden');
-                muatSesiAktif();
-            } else {
-                statusUserSekarang = null;
-                btnLogin.classList.remove('hidden');
-                userInfo.classList.add('hidden');
-                mainPanel.classList.add('hidden');
-            }
-        });
-
-        function cekAksesAdmin() {
-            if(!statusUserSekarang || !whitelistAdmins.includes(statusUserSekarang.email)) {
-                alert("Akses Ditolak! Akun Google Anda (" + (statusUserSekarang?.email || "Kosong") + ") tidak terdaftar sebagai Panitia Sah di Vercel Env.");
-                return false;
-            }
-            return true;
-        }
-
-        async function muatSesiAktif() {
-            const q = query(collection(db, "sesi_musim"), where("status", "==", "aktif"));
-            const querySnapshot = await getDocs(q);
-            if(!querySnapshot.empty) {
-                querySnapshot.forEach(doc => {
-                    idMusimAktif = doc.id;
-                    namaMusimAktif = doc.data().nama;
-                    nominalGajiAktif = doc.data().gajiPanitia || 0;
-                    document.getElementById('label-musim-aktif').textContent = namaMusimAktif;
-                });
-            } else {
-                document.getElementById('label-musim-aktif').textContent = "Tidak ada sesi aktif";
-            }
-        }
-
-        // Action: Buat Musim Baru
-        document.getElementById('btn-buat-musim').addEventListener('click', async () => {
-            if(!cekAksesAdmin()) return;
-            const nama = document.getElementById('nama-musim-baru').value;
-            const gajiRaw = document.getElementById('gaji-musim-baru').value.replace(/\D/g, "");
-
-            if(!nama || !gajiRaw) { alert("Isi nama musim dan besaran alokasi gaji!"); return; }
-
-            // Nonaktifkan semua sesi lama dulu
-            const q = query(collection(db, "sesi_musim"), where("status", "==", "aktif"));
-            const activeDocs = await getDocs(q);
-            for (let docOf of activeDocs.docs) {
-                await updateDoc(doc(db, "sesi_musim", docOf.id), { status: "arsip" });
-            }
-
-            // Tambah sesi baru
-            await addDoc(collection(db, "sesi_musim"), {
-                nama: nama,
-                gajiPanitia: Number(gajiRaw),
-                status: "aktif"
-            });
-
-            alert("Musim " + nama + " Berhasil Diaktifkan!");
-            location.reload();
-        });
-
-        // Action: Simpan Kas Masuk
-        document.getElementById('btn-simpan-masuk').addEventListener('click', async () => {
-            if(!cekAksesAdmin()) return;
-            if(!idMusimAktif) { alert("Aktifkan sesi musim terlebih dahulu!"); return; }
-
-            const nama = document.getElementById('in-nama-combine').value;
-            const lokasi = document.getElementById('in-lokasi').value;
-            const karung = document.getElementById('in-karung').value;
-            const nominal = document.getElementById('in-nominal-masuk').value.replace(/\D/g, "");
-
-            if(!nama || !lokasi || !karung) { alert("Semua form wajib diisi!"); return; }
-
-            await addDoc(collection(db, "transaksi"), {
-                musimId: idMusimAktif,
-                jenis: "masuk",
-                nama: nama,
-                lokasi: lokasi,
-                jumlahKarung: Number(karung),
-                nominal: Number(nominal),
-                tanggal: new Date().toLocaleDateString('id-ID'),
-                timestamp: Date.now()
-            });
-
-            alert("Setoran panen berhasil disimpan!");
-            location.reload();
-        });
-
-        // Action: Simpan Kas Keluar
-        document.getElementById('btn-simpan-keluar').addEventListener('click', async () => {
-            if(!cekAksesAdmin()) return;
-            if(!idMusimAktif) { alert("Aktifkan sesi musim terlebih dahulu!"); return; }
-
-            const nama = document.getElementById('out-nama').value;
-            const keterangan = document.getElementById('out-keterangan').value;
-            const nominal = document.getElementById('out-nominal').value.replace(/\D/g, "");
-
-            if(!nama || !keterangan || !nominal) { alert("Semua form wajib diisi!"); return; }
-
-            await addDoc(collection(db, "transaksi"), {
-                musimId: idMusimAktif,
-                jenis: "keluar",
-                nama: nama,
-                keterangan: keterangan,
-                nominal: Number(nominal),
-                tanggal: new Date().toLocaleDateString('id-ID'),
-                timestamp: Date.now()
-            });
-
-            alert("Data pengeluaran dana berhasil dicatat!");
-            location.reload();
-        });
-
-        // Action: Potong Gaji Manual
-        document.getElementById('btn-potong-gaji').addEventListener('click', async () => {
-            if(!cekAksesAdmin()) return;
-            if(!idMusimAktif) { alert("Tidak ada sesi musim yang aktif!"); return; }
+        // Fungsi login nama lokal warga
+        window.masukSebagaiWarga = function() {
+            const nama = document.getElementById('input-nama-warga').value.trim();
+            if(!nama) { alert("Nama tidak boleh kosong!"); return; }
             
-            if(confirm("Apakah Anda yakin ingin mencatat pemotongan gaji operasional panitia sebesar Rp " + Number(nominalGajiAktif).toLocaleString('id-ID') + " untuk musim ini secara transparan?")) {
-                await addDoc(collection(db, "transaksi"), {
-                    musimId: idMusimAktif,
-                    jenis: "keluar",
-                    nama: "Insentif Operasional Panitia",
-                    keterangan: "Alokasi anggaran kepanitiaan resmi Musim " + namaMusimAktif,
-                    nominal: Number(nominalGajiAktif),
-                    tanggal: new Date().toLocaleDateString('id-ID'),
-                    timestamp: Date.now()
-                });
-                alert("Gaji panitia berhasil dipotong dari kas secara transparan!");
-                location.reload();
+            // Simpan di memori browser agar kalau direfresh tidak minta nama lagi
+            localStorage.setItem('nama_warga_login', nama);
+            bukaDashboard(nama);
+        }
+
+        function bukaDashboard(nama) {
+            document.getElementById('user-login-screen').classList.add('hidden');
+            document.getElementById('main-dashboard-content').classList.remove('hidden');
+            document.getElementById('salam-warga').textContent = "Warga: " + nama;
+            initSistem();
+        }
+
+        // Cek apakah warga sudah pernah isi nama sebelumnya
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedName = localStorage.getItem('nama_warga_login');
+            if(savedName) {
+                bukaDashboard(savedName);
             }
         });
 
+        function formatRupiah(angka) {
+            return "Rp " + Number(angka).toLocaleString('id-ID');
+        }
+
+        window.switchTab = function(tab) {
+            currentTab = tab;
+            const btnMasuk = document.getElementById('btn-masuk');
+            const btnKeluar = document.getElementById('btn-keluar');
+            if(tab === 'masuk') {
+                btnMasuk.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg bg-white text-emerald-700 shadow-sm transition-all";
+                btnKeluar.className = "flex-1 text-center py-2 text-xs font-medium rounded-lg text-slate-600 transition-all";
+            } else {
+                btnKeluar.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg bg-white text-emerald-700 shadow-sm transition-all";
+                btnMasuk.className = "flex-1 text-center py-2 text-xs font-medium rounded-lg text-slate-600 transition-all";
+            }
+            renderTransaksi();
+        }
+
+        async function initSistem() {
+            const musimSelect = document.getElementById('select-musim');
+            const querySnapshot = await getDocs(collection(db, "sesi_musim"));
+            musimSelect.innerHTML = "";
+            querySnapshot.forEach((doc) => {
+                let data = doc.data();
+                let opt = document.createElement('option');
+                opt.value = doc.id;
+                opt.textContent = data.nama;
+                if(data.status === 'aktif') opt.selected = true;
+                musimSelect.appendChild(opt);
+            });
+
+            musimSelect.addEventListener('change', () => muatDataMusim(musimSelect.value));
+            if(musimSelect.value) muatDataMusim(musimSelect.value);
+        }
+
+        async function muatDataMusim(musimId) {
+            if(!musimId) return;
+            const docRef = doc(db, "sesi_musim", musimId);
+            const docSnap = await getDoc(docRef);
+            if(docSnap.exists()) {
+                document.getElementById('info-gaji-text').textContent = formatRupiah(docSnap.data().gajiPanitia || 0);
+            }
+
+            const q = query(collection(db, "transaksi"), where("musimId", "==", musimId));
+            const querySnapshot = await getDocs(q);
+            semuaTransaksi = [];
+            let totalMasuk = 0;
+            let totalKeluar = 0;
+
+            querySnapshot.forEach((doc) => {
+                let item = doc.data();
+                semuaTransaksi.push(item);
+                if(item.jenis === 'masuk') totalMasuk += Number(item.nominal);
+                if(item.jenis === 'keluar') totalKeluar += Number(item.nominal);
+            });
+
+            document.getElementById('total-masuk').textContent = formatRupiah(totalMasuk);
+            document.getElementById('total-keluar').textContent = formatRupiah(totalKeluar);
+            document.getElementById('saldo-utama').textContent = formatRupiah(totalMasuk - totalKeluar);
+
+            renderTransaksi();
+        }
+
+        function renderTransaksi() {
+            const container = document.getElementById('list-container');
+            container.innerHTML = "";
+            const filtered = semuaTransaksi.filter(t => t.jenis === currentTab);
+            if(filtered.length === 0) {
+                container.innerHTML = `<p class="text-center text-xs text-slate-400 py-6">Belum ada catatan transaksi di kategori ini.</p>`;
+                return;
+            }
+
+            filtered.sort((a,b) => b.timestamp - a.timestamp).forEach(t => {
+                let card = document.createElement('div');
+                card.className = "bg-white rounded-xl p-3.5 shadow-sm border border-slate-100 flex justify-between items-center";
+                let htmlDetail = currentTab === 'masuk' 
+                    ? `<p class="text-xs text-slate-500 font-medium">${t.lokasi} • ${t.jumlahKarung} Karung</p>`
+                    : `<p class="text-xs text-slate-500 font-medium">${t.keterangan}</p>`;
+
+                card.innerHTML = `
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-medium">${t.tanggal}</p>
+                        <h5 class="text-sm font-bold text-slate-800">${t.nama}</h5>
+                        ${htmlDetail}
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-block ${currentTab === 'masuk' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'} text-xs font-bold px-2 py-1 rounded-lg">
+                            ${currentTab === 'masuk' ? '+' : '-'}${formatRupiah(t.nominal)}
+                        </span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
     </script>
 </body>
 </html>
