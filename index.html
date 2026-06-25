@@ -12,11 +12,13 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen">
 
+    <!-- LAYER LOADING KONEKSI -->
     <div id="loading-screen" class="fixed inset-0 bg-slate-900 z-50 flex flex-col items-center justify-center p-4">
         <div class="text-3xl animate-bounce">🌾</div>
         <p class="text-xs text-slate-400 mt-3 font-medium">Menghubungkan ke sistem desa...</p>
     </div>
 
+    <!-- LAYER 1: LOGIN GOOGLE UNTUK WARGA -->
     <div id="warga-auth-screen" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm space-y-4 text-center">
             <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-xl">🌾</div>
@@ -31,6 +33,7 @@
         </div>
     </div>
 
+    <!-- LAYER 2: FORM INPUT NAMA WARGA -->
     <div id="warga-nama-screen" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm space-y-4 text-center">
             <div class="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto text-xl">👤</div>
@@ -45,6 +48,7 @@
         </div>
     </div>
 
+    <!-- LAYER 3: MAIN DASHBOARD UTAMA -->
     <div id="main-dashboard-content" class="hidden flex flex-col min-h-screen">
         <header class="bg-emerald-600 text-white shadow-md sticky top-0 z-30">
             <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
@@ -113,6 +117,7 @@
         </footer>
     </div>
 
+    <!-- Firebase SDK Logic via Serverless Fetch -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -122,11 +127,20 @@
         let currentTab = 'masuk';
         let semuaTransaksi = [];
 
-        // Ambil konfigurasi dari Serverless API Vercel secara aman
         async function loadSystem() {
             try {
                 const response = await fetch('/api/config');
+                
+                // Cek jika API mengembalikan eror halaman hilang (404) atau server crash (500)
+                if (!response.ok) {
+                    throw new Error("Gagal terhubung ke API Vercel (Status: " + response.status + "). Pastikan letak file api/config.js Anda sudah benar.");
+                }
+                
                 const config = await response.json();
+                
+                if (!config.apiKey || config.apiKey === "") {
+                    throw new Error("Kunci Firebase masih kosong. Periksa apakah Environment Variables di Dashboard Vercel Anda sudah tersimpan dengan benar.");
+                }
                 
                 const app = initializeApp(config);
                 db = getFirestore(app);
@@ -151,7 +165,13 @@
                     }
                 });
             } catch (err) {
-                alert("Gagal memuat sistem keamanan desa.");
+                document.getElementById('loading-screen').innerHTML = `
+                    <div class="text-center p-6 bg-slate-800 rounded-2xl max-w-xs mx-auto border border-rose-500/20">
+                        <p class="text-rose-400 font-bold text-sm">❌ Terjadi Kendala Sistem</p>
+                        <p class="text-slate-300 text-xs mt-2 text-left bg-slate-950 p-3 rounded-lg overflow-auto">${err.message}</p>
+                        <button onclick="location.reload()" class="mt-4 bg-slate-700 text-white text-xs px-4 py-2 rounded-lg font-semibold">Segarkan Halaman</button>
+                    </div>
+                `;
             }
         }
 
@@ -195,19 +215,23 @@
         }
 
         async function initSistem() {
-            const musimSelect = document.getElementById('select-musim');
-            const querySnapshot = await getDocs(collection(db, "sesi_musim"));
-            musimSelect.innerHTML = "";
-            querySnapshot.forEach((doc) => {
-                let data = doc.data();
-                let opt = document.createElement('option');
-                opt.value = doc.id;
-                opt.textContent = data.nama;
-                if(data.status === 'aktif') opt.selected = true;
-                musimSelect.appendChild(opt);
-            });
-            musimSelect.addEventListener('change', () => muatDataMusim(musimSelect.value));
-            if(musimSelect.value) muatDataMusim(musimSelect.value);
+            try {
+                const musimSelect = document.getElementById('select-musim');
+                const querySnapshot = await getDocs(collection(db, "sesi_musim"));
+                musimSelect.innerHTML = "";
+                querySnapshot.forEach((doc) => {
+                    let data = doc.data();
+                    let opt = document.createElement('option');
+                    opt.value = doc.id;
+                    opt.textContent = data.nama;
+                    if(data.status === 'aktif') opt.selected = true;
+                    musimSelect.appendChild(opt);
+                });
+                musimSelect.addEventListener('change', () => muatDataMusim(musimSelect.value));
+                if(musimSelect.value) muatDataMusim(musimSelect.value);
+            } catch(e) {
+                alert("Gagal membaca database Firestore. Periksa aturan 'Rules' Firestore Anda.");
+            }
         }
 
         async function muatDataMusim(musimId) {
@@ -251,7 +275,6 @@
             });
         }
 
-        // Jalankan sistem pembacaan serverless
         loadSystem();
     </script>
 </body>
