@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Transparansi Dana Jalan Desa</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-emerald-600 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="p-2 bg-emerald-700 rounded-lg">
+                    <svg class="w-6 h-6 text-emerald-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold">DanaJalan Desa</h1>
+                    <p class="text-xs text-emerald-100">Transparansi Swadaya Petani</p>
+                </div>
+            </div>
+            <a href="/admin.html" class="bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-all">
+                Menu Panitia 🔑
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-md w-full mx-auto px-4 py-4 flex-1 space-y-4 mb-16">
+        
+        <!-- Dropdown Pilih Musim -->
+        <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-200 flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-500 uppercase">Pilih Sesi Musim:</span>
+            <select id="select-musim" class="bg-slate-100 border border-slate-300 rounded-lg text-xs font-semibold p-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <!-- Diisi dinamis dari Firebase -->
+            </select>
+        </div>
+
+        <!-- Dashboard Keuangan -->
+        <div class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-2xl p-5 shadow-md relative overflow-hidden">
+            <p class="text-xs font-medium uppercase tracking-wider text-emerald-200">Sisa Saldo Kas Musim Ini</p>
+            <h2 id="saldo-utama" class="text-3xl font-extrabold mt-1">Rp 0</h2>
+            <div class="mt-4 pt-3 border-t border-emerald-500/30 flex justify-between text-xs">
+                <div>
+                    <p class="opacity-75">Total Masuk (Bawon)</p>
+                    <p id="total-masuk" class="font-semibold text-sm">Rp 0</p>
+                </div>
+                <div class="text-right">
+                    <p class="opacity-75">Total Pengeluaran</p>
+                    <p id="total-keluar" class="font-semibold text-sm">Rp 0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Gaji Panitia Transparan -->
+        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-start gap-2.5">
+            <span class="text-xl">📋</span>
+            <div>
+                <h4 class="text-xs font-bold text-amber-800 uppercase">Kesepakatan Operasional Panitia</h4>
+                <p class="text-xs text-amber-700 mt-0.5">Anggaran insentif/gaji pengelola yang disepakati bersama adalah sebesar <strong id="info-gaji-text">Rp 0</strong> per musim panen dan dipotong secara berkala pada sistem kas keluar.</p>
+            </div>
+        </div>
+
+        <!-- Tab Navigasi Riwayat -->
+        <div class="flex bg-slate-200 p-1 rounded-xl gap-1">
+            <button id="btn-masuk" onclick="switchTab('masuk')" class="flex-1 text-center py-2 text-xs font-semibold rounded-lg bg-white text-emerald-700 shadow-sm transition-all">
+                Setoran Panen (+)
+            </button>
+            <button id="btn-keluar" onclick="switchTab('keluar')" class="flex-1 text-center py-2 text-xs font-medium rounded-lg text-slate-600 hover:text-slate-900 transition-all">
+                Penggunaan Dana (-)
+            </button>
+        </div>
+
+        <!-- List Data -->
+        <div id="list-container" class="space-y-2">
+            <!-- Data diisi via Firebase JS -->
+        </div>
+
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400 fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto">
+        <p>© 2026 Swadaya Masyarakat Mandiri</p>
+    </footer>
+
+    <!-- Firebase SDK & Logika -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // Konfigurasi otomatis diganti saat dideploy ke Vercel jika diset di Env Dashboard
+        const firebaseConfig = {
+            apiKey: "process.env.NEXT_PUBLIC_FIREBASE_API_KEY",
+            authDomain: "process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
+            projectId: "process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+            storageBucket: "process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",
+            messagingSenderId: "process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
+            appId: "process.env.NEXT_PUBLIC_FIREBASE_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentTab = 'masuk';
+        let semuaTransaksi = [];
+
+        // Format Rupiah Pemisah Ribuan
+        function formatRupiah(angka) {
+            return "Rp " + Number(angka).toLocaleString('id-ID');
+        }
+
+        window.switchTab = function(tab) {
+            currentTab = tab;
+            const btnMasuk = document.getElementById('btn-masuk');
+            const btnKeluar = document.getElementById('btn-keluar');
+            if(tab === 'masuk') {
+                btnMasuk.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg bg-white text-emerald-700 shadow-sm transition-all";
+                btnKeluar.className = "flex-1 text-center py-2 text-xs font-medium rounded-lg text-slate-600 transition-all";
+            } else {
+                btnKeluar.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg bg-white text-emerald-700 shadow-sm transition-all";
+                btnMasuk.className = "flex-1 text-center py-2 text-xs font-medium rounded-lg text-slate-600 transition-all";
+            }
+            renderTransaksi();
+        }
+
+        async function initSistem() {
+            const musimSelect = document.getElementById('select-musim');
+            // Ambil Sesi Musim
+            const querySnapshot = await getDocs(collection(db, "sesi_musim"));
+            musimSelect.innerHTML = "";
+            querySnapshot.forEach((doc) => {
+                let data = doc.data();
+                let opt = document.createElement('option');
+                opt.value = doc.id;
+                opt.textContent = data.nama;
+                if(data.status === 'aktif') opt.selected = true;
+                musimSelect.appendChild(opt);
+            });
+
+            musimSelect.addEventListener('change', () => muatDataMusim(musimSelect.value));
+            if(musimSelect.value) muatDataMusim(musimSelect.value);
+        }
+
+        async function muatDataMusim(musimId) {
+            if(!musimId) return;
+            
+            // Ambil info gaji aturan musim ini
+            const docRef = doc(db, "sesi_musim", musimId);
+            const docSnap = await getDoc(docRef);
+            if(docSnap.exists()) {
+                document.getElementById('info-gaji-text').textContent = formatRupiah(docSnap.data().gajiPanitia || 0);
+            }
+
+            // Ambil data transaksi keuangan
+            const q = query(collection(db, "transaksi"), where("musimId", "==", musimId));
+            const querySnapshot = await getDocs(q);
+            semuaTransaksi = [];
+            let totalMasuk = 0;
+            let totalKeluar = 0;
+
+            querySnapshot.forEach((doc) => {
+                let item = doc.data();
+                semuaTransaksi.push(item);
+                if(item.jenis === 'masuk') totalMasuk += Number(item.nominal);
+                if(item.jenis === 'keluar') totalKeluar += Number(item.nominal);
+            });
+
+            document.getElementById('total-masuk').textContent = formatRupiah(totalMasuk);
+            document.getElementById('total-keluar').textContent = formatRupiah(totalKeluar);
+            document.getElementById('saldo-utama').textContent = formatRupiah(totalMasuk - totalKeluar);
+
+            renderTransaksi();
+        }
+
+        function renderTransaksi() {
+            const container = document.getElementById('list-container');
+            container.innerHTML = "";
+            
+            const filtered = semuaTransaksi.filter(t => t.jenis === currentTab);
+            if(filtered.length === 0) {
+                container.innerHTML = `<p class="text-center text-xs text-slate-400 py-6">Belum ada catatan transaksi di kategori ini.</p>`;
+                return;
+            }
+
+            filtered.sort((a,b) => b.timestamp - a.timestamp).forEach(t => {
+                let card = document.createElement('div');
+                card.className = "bg-white rounded-xl p-3.5 shadow-sm border border-slate-100 flex justify-between items-center";
+                
+                let htmlDetail = currentTab === 'masuk' 
+                    ? `<p class="text-xs text-slate-500 font-medium">${t.lokasi} • ${t.jumlahKarung} Karung</p>`
+                    : `<p class="text-xs text-slate-500 font-medium">${t.keterangan}</p>`;
+
+                card.innerHTML = `
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-medium">${t.tanggal}</p>
+                        <h5 class="text-sm font-bold text-slate-800">${t.nama}</h5>
+                        ${htmlDetail}
+                    </div>
+                    <div class="text-right">
+                        <span class="inline-block ${currentTab === 'masuk' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'} text-xs font-bold px-2 py-1 rounded-lg">
+                            ${currentTab === 'masuk' ? '+' : '-'}${formatRupiah(t.nominal)}
+                        </span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        initSistem();
+    </script>
+</body>
+</html>
