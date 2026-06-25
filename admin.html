@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ruang Kerja Panitia</title>
+    <title>🔑 Panel Admin - Ruang Kerja Panitia</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 antialiased flex flex-col min-h-screen">
 
-    <!-- LAYER PROTEKSI: WAJIB LOGIN & WHITELIST EMAIL -->
-    <div id="admin-auth-screen" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4">
+    <div id="loading-screen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center p-4">
+        <div class="text-3xl animate-bounce">🔑</div>
+        <p class="text-xs text-slate-500 mt-3 font-medium">Memverifikasi gerbang admin...</p>
+    </div>
+
+    <div id="admin-auth-screen" class="fixed inset-0 bg-slate-950 z-40 flex items-center justify-center p-4 hidden">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl w-full max-w-sm space-y-4 text-center">
             <div class="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto text-blue-400 text-xl font-bold">🔑</div>
             <div>
@@ -20,11 +24,10 @@
             <button onclick="loginGoogleAdmin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-2">
                 Sign In dengan Google
             </button>
-            <p id="error-admin-msg" class="text-xs text-rose-400 font-semibold hidden"></p>
+            <p id="error-admin-msg" class="text-xs text-rose-400 font-semibold hidden bg-rose-500/10 p-2 rounded-lg border border-rose-500/20"></p>
         </div>
     </div>
 
-    <!-- AREA KERJA ADMIN (Hanya terbuka jika lolos verifikasi) -->
     <div id="admin-main-content" class="hidden flex flex-col min-h-screen">
         <header class="bg-slate-800 border-b border-slate-700 py-3 px-4">
             <div class="max-w-md mx-auto flex justify-between items-center">
@@ -42,68 +45,68 @@
         <main class="max-w-md w-full mx-auto px-4 py-4 space-y-4 flex-1">
             <p class="text-xs text-slate-400">👋 Anda berhasil masuk sebagai panitia. Sekarang Anda dapat menambah sesi musim baru atau memasukkan catatan kas masuk/keluar.</p>
             
-            <!-- (Form tambah sesi, kas masuk, dan kas keluar diletakkan di bawah sini secara otomatis) -->
             <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center py-10">
                 <span class="text-2xl block mb-2">⚡</span>
-                <p class="text-xs font-semibold text-slate-300">Sistem Autentikasi Siap</p>
-                <p class="text-[11px] text-slate-500 mt-1">Gudang data Anda sudah tersambung dengan Firebase Firestore.</p>
+                <p class="text-xs font-semibold text-slate-300">Sistem Autentikasi Serverless Siap</p>
+                <p class="text-[11px] text-slate-500 mt-1">Gudang data Anda aman dan tersembunyi sepenuhnya di Vercel.</p>
             </div>
         </main>
     </div>
 
-    <!-- Firebase Admin Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "process.env.NEXT_PUBLIC_FIREBASE_API_KEY",
-            authDomain: "process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
-            projectId: "process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID",
-            storageBucket: "process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",
-            messagingSenderId: "process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
-            appId: "process.env.NEXT_PUBLIC_FIREBASE_APP_ID"
-        };
+        let auth, provider, allowedEmails = [];
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
+        async function loadAdminSystem() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                
+                const app = initializeApp(config);
+                auth = getAuth(app);
+                provider = new GoogleAuthProvider();
 
-        // Ambil daftar email terdaftar dari Environment Vercel
-        const allowedEmailsStr = "process.env.NEXT_PUBLIC_ALLOWED_ADMIN_EMAILS" || "";
-        const allowedEmails = allowedEmailsStr.split(',').map(e => e.trim().toLowerCase());
+                if (config.allowedAdminEmails) {
+                    allowedEmails = config.allowedAdminEmails.split(',').map(e => e.trim().toLowerCase());
+                }
+
+                document.getElementById('loading-screen').classList.add('hidden');
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        const userEmail = user.email.toLowerCase();
+                        if (allowedEmails.includes(userEmail)) {
+                            document.getElementById('admin-auth-screen').classList.add('hidden');
+                            document.getElementById('admin-main-content').classList.remove('hidden');
+                            document.getElementById('admin-email-display').textContent = "Login: " + user.email;
+                        } else {
+                            document.getElementById('error-admin-msg').textContent = "Akses Ditolak! Email (" + user.email + ") tidak terdaftar sebagai Panitia.";
+                            document.getElementById('error-admin-msg').classList.remove('hidden');
+                            signOut(auth);
+                        }
+                    } else {
+                        document.getElementById('admin-auth-screen').classList.remove('hidden');
+                        document.getElementById('admin-main-content').classList.add('hidden');
+                    }
+                });
+            } catch (err) {
+                alert("Gagal memuat otorisasi admin.");
+            }
+        }
 
         window.loginGoogleAdmin = function() {
             document.getElementById('error-admin-msg').classList.add('hidden');
-            signInWithPopup(auth, provider).catch(err => {
-                alert("Gagal Login: " + err.message);
-            });
+            signInWithPopup(auth, provider).catch(err => alert("Gagal Login: " + err.message));
         };
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                const userEmail = user.email.toLowerCase();
-                
-                // Validasi apakah email user ada di whitelist Vercel
-                if (allowedEmails.includes(userEmail)) {
-                    document.getElementById('admin-auth-screen').classList.add('hidden');
-                    document.getElementById('admin-main-content').classList.remove('hidden');
-                    document.getElementById('admin-email-display').textContent = "Login: " + user.email;
-                } else {
-                    // Jika tidak terdaftar, paksa logout dan beri peringatan
-                    document.getElementById('error-admin-msg').textContent = "Akses Ditolak! Email Anda tidak terdaftar sebagai Panitia.";
-                    document.getElementById('error-admin-msg').classList.remove('hidden');
-                    signOut(auth);
-                }
-            } else {
-                document.getElementById('admin-auth-screen').classList.remove('hidden');
-                document.getElementById('admin-main-content').classList.add('hidden');
-            }
-        });
 
         window.logoutAdmin = function() {
-            signOut(auth);
+            signOut(auth).then(() => { location.reload(); });
         };
+
+        // Jalankan pembacaan sistem aman
+        loadAdminSystem();
     </script>
 </body>
 </html>
