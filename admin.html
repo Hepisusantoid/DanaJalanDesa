@@ -9,11 +9,13 @@
 </head>
 <body class="bg-slate-900 text-slate-100 antialiased flex flex-col min-h-screen">
 
+    <!-- LAYER LOADING KONEKSI -->
     <div id="loading-screen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center p-4">
         <div class="text-3xl animate-bounce">🔑</div>
         <p class="text-xs text-slate-500 mt-3 font-medium">Memverifikasi gerbang admin...</p>
     </div>
 
+    <!-- LAYER PROTEKSI: WAJIB LOGIN & WHITELIST EMAIL -->
     <div id="admin-auth-screen" class="fixed inset-0 bg-slate-950 z-40 flex items-center justify-center p-4 hidden">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl w-full max-w-sm space-y-4 text-center">
             <div class="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto text-blue-400 text-xl font-bold">🔑</div>
@@ -28,6 +30,7 @@
         </div>
     </div>
 
+    <!-- AREA KERJA ADMIN -->
     <div id="admin-main-content" class="hidden flex flex-col min-h-screen">
         <header class="bg-slate-800 border-b border-slate-700 py-3 px-4">
             <div class="max-w-md mx-auto flex justify-between items-center">
@@ -53,6 +56,7 @@
         </main>
     </div>
 
+    <!-- Firebase Admin Logic via Serverless -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -62,6 +66,9 @@
         async function loadAdminSystem() {
             try {
                 const response = await fetch('/api/config');
+                if (!response.ok) {
+                    throw new Error("Gagal terhubung ke API Vercel Admin (Status: " + response.status + ")");
+                }
                 const config = await response.json();
                 
                 const app = initializeApp(config);
@@ -92,7 +99,12 @@
                     }
                 });
             } catch (err) {
-                alert("Gagal memuat otorisasi admin.");
+                document.getElementById('loading-screen').innerHTML = `
+                    <div class="text-center p-6 bg-slate-800 rounded-2xl max-w-xs mx-auto">
+                        <p class="text-rose-400 font-bold text-sm">❌ Sistem Admin Bermasalah</p>
+                        <p class="text-slate-400 text-xs mt-2">${err.message}</p>
+                    </div>
+                `;
             }
         }
 
@@ -105,7 +117,6 @@
             signOut(auth).then(() => { location.reload(); });
         };
 
-        // Jalankan pembacaan sistem aman
         loadAdminSystem();
     </script>
 </body>
