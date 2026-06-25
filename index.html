@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Transparansi Dana Jalan Desa</title>
+    <title>🌾 DanaJalan Desa - Transparansi Swadaya</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -12,8 +12,12 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen">
 
-    <!-- LAYER 1: LOGIN GOOGLE UNTUK WARGA -->
-    <div id="warga-auth-screen" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div id="loading-screen" class="fixed inset-0 bg-slate-900 z-50 flex flex-col items-center justify-center p-4">
+        <div class="text-3xl animate-bounce">🌾</div>
+        <p class="text-xs text-slate-400 mt-3 font-medium">Menghubungkan ke sistem desa...</p>
+    </div>
+
+    <div id="warga-auth-screen" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm space-y-4 text-center">
             <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-xl">🌾</div>
             <div>
@@ -21,14 +25,13 @@
                 <p class="text-xs text-slate-500 mt-1">Silakan masuk menggunakan akun Google Anda terlebih dahulu untuk mengakses laporan transparansi.</p>
             </div>
             <button onclick="loginGoogleWarga()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
-                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.24 10.285V13.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C17.955 2.192 15.34 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c6.478 0 10.793-4.537 10.793-10.986 0-.746-.08-1.32-.176-1.886H12.24z"/></svg>
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.24 10.285V13.4 h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C17.955 2.192 15.34 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c6.478 0 10.793-4.537 10.793-10.986 0-.746-.08-1.32-.176-1.886H12.24z"/></svg>
                 Sign In dengan Google
             </button>
         </div>
     </div>
 
-    <!-- LAYER 2: FORM INPUT NAMA WARGA -->
-    <div id="warga-nama-screen" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div id="warga-nama-screen" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm space-y-4 text-center">
             <div class="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto text-xl">👤</div>
             <div>
@@ -42,9 +45,8 @@
         </div>
     </div>
 
-    <!-- LAYER 3: MAIN DASHBOARD UTAMA -->
     <div id="main-dashboard-content" class="hidden flex flex-col min-h-screen">
-        <header class="bg-emerald-600 text-white shadow-md sticky top-0 z-40">
+        <header class="bg-emerald-600 text-white shadow-md sticky top-0 z-30">
             <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
                 <div class="flex items-center gap-2">
                     <div class="p-2 bg-emerald-700 rounded-lg">🌾</div>
@@ -106,63 +108,63 @@
             <div id="list-container" class="space-y-2"></div>
         </main>
 
-        <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400 fixed bottom-0 left-0 right-0 z-40 max-w-md mx-auto">
+        <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400 fixed bottom-0 left-0 right-0 z-30 max-w-md mx-auto">
             <p>© 2026 Swadaya Masyarakat Mandiri</p>
         </footer>
     </div>
 
-    <!-- Firebase SDK Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "process.env.NEXT_PUBLIC_FIREBASE_API_KEY",
-            authDomain: "process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
-            projectId: "process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID",
-            storageBucket: "process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",
-            messagingSenderId: "process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
-            appId: "process.env.NEXT_PUBLIC_FIREBASE_APP_ID"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
-
+        let db, auth, provider;
         let currentTab = 'masuk';
         let semuaTransaksi = [];
 
-        // 1. Fungsi Login Google Warga
+        // Ambil konfigurasi dari Serverless API Vercel secara aman
+        async function loadSystem() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                
+                const app = initializeApp(config);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                provider = new GoogleAuthProvider();
+
+                document.getElementById('loading-screen').classList.add('hidden');
+                
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        document.getElementById('warga-auth-screen').classList.add('hidden');
+                        const namaTersimpan = localStorage.getItem('nama_warga_tercatat');
+                        if (namaTersimpan) {
+                            tampilkanDashboard(namaTersimpan);
+                        } else {
+                            document.getElementById('warga-nama-screen').classList.remove('hidden');
+                        }
+                    } else {
+                        document.getElementById('warga-auth-screen').classList.remove('hidden');
+                        document.getElementById('warga-nama-screen').classList.add('hidden');
+                        document.getElementById('main-dashboard-content').classList.add('hidden');
+                    }
+                });
+            } catch (err) {
+                alert("Gagal memuat sistem keamanan desa.");
+            }
+        }
+
         window.loginGoogleWarga = function() {
             signInWithPopup(auth, provider).catch(err => alert("Gagal Login Google: " + err.message));
         };
 
-        // 2. Fungsi Simpan Nama Manual Warga
         window.simpanNamaWarga = function() {
             const nama = document.getElementById('input-nama-warga').value.trim();
             if(!nama) { alert("Nama tidak boleh kosong!"); return; }
             localStorage.setItem('nama_warga_tercatat', nama);
             tampilkanDashboard(nama);
         };
-
-        // 3. Monitor Status Login
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('warga-auth-screen').classList.add('hidden');
-                const namaTersimpan = localStorage.getItem('nama_warga_tercatat');
-                if (namaTersimpan) {
-                    tampilkanDashboard(namaTersimpan);
-                } else {
-                    document.getElementById('warga-nama-screen').classList.remove('hidden');
-                }
-            } else {
-                document.getElementById('warga-auth-screen').classList.remove('hidden');
-                document.getElementById('warga-nama-screen').classList.add('hidden');
-                document.getElementById('main-dashboard-content').classList.add('hidden');
-            }
-        });
 
         function tampilkanDashboard(nama) {
             document.getElementById('warga-nama-screen').classList.add('hidden');
@@ -173,10 +175,9 @@
 
         window.logoutWarga = function() {
             localStorage.removeItem('nama_warga_tercatat');
-            signOut(auth);
+            signOut(auth).then(() => { location.reload(); });
         };
 
-        // --- Logika Penampilan Data Sisa Seperti Kemarin ---
         function formatRupiah(angka) { return "Rp " + Number(angka).toLocaleString('id-ID'); }
 
         window.switchTab = function(tab) {
@@ -249,6 +250,9 @@
                 container.appendChild(card);
             });
         }
+
+        // Jalankan sistem pembacaan serverless
+        loadSystem();
     </script>
 </body>
 </html>
