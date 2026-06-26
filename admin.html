@@ -9,13 +9,11 @@
 </head>
 <body class="bg-slate-900 text-slate-100 antialiased flex flex-col min-h-screen">
 
-    <!-- LAYER LOADING KONEKSI -->
     <div id="loading-screen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center p-4">
         <div class="text-3xl animate-bounce">🔑</div>
         <p class="text-xs text-slate-500 mt-3 font-medium">Memverifikasi gerbang admin...</p>
     </div>
 
-    <!-- LAYER PROTEKSI: WAJIB LOGIN & WHITELIST EMAIL -->
     <div id="admin-auth-screen" class="fixed inset-0 bg-slate-950 z-40 flex items-center justify-center p-4 hidden">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl w-full max-w-sm space-y-4 text-center">
             <div class="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto text-blue-400 text-xl font-bold">🔑</div>
@@ -30,7 +28,6 @@
         </div>
     </div>
 
-    <!-- AREA KERJA ADMIN -->
     <div id="admin-main-content" class="hidden flex flex-col min-h-screen">
         <header class="bg-slate-800 border-b border-slate-700 py-3 px-4 sticky top-0 z-30">
             <div class="max-w-md mx-auto flex justify-between items-center">
@@ -47,7 +44,6 @@
 
         <main class="max-w-md w-full mx-auto px-4 py-4 space-y-5 flex-1 mb-10">
             
-            <!-- KOTAK 1: MANAJEMEN SESI MUSIM -->
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
                 <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">🌾 Tambah Sesi Musim Baru</h3>
                 <div class="space-y-2">
@@ -59,7 +55,6 @@
                 </div>
             </div>
 
-            <!-- KOTAK 2: INPUT TRANSAKSI (KAS MASUK / KAS KELUAR) -->
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
                 <div class="flex justify-between items-center">
                     <h3 id="form-tx-title" class="text-xs font-bold text-blue-400 uppercase tracking-wider">✍️ Pencatatan Kas Swadaya</h3>
@@ -67,7 +62,6 @@
                 </div>
                 
                 <div class="space-y-2">
-                    <!-- ID Tersembunyi untuk Mode Edit -->
                     <input type="hidden" id="tx-edit-id" value="">
 
                     <div>
@@ -92,7 +86,6 @@
                         <input type="text" id="tx-nama" placeholder="Nama warga pembayar / Nama bos (Misal: Sumber Makmur)" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none">
                     </div>
 
-                    <!-- Input Khusus Kas Masuk -->
                     <div id="form-khusus-masuk" class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="text-[10px] text-slate-400 block mb-1 font-medium">LOKASI LAHAN</label>
@@ -115,29 +108,24 @@
                 </div>
             </div>
 
-            <!-- KOTAK 3: DAFTAR RIWAYAT & OPSI KELOLA DATA -->
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
                 <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">📑 Daftar Catatan Musim Ini</h3>
                 <div id="admin-list-transaksi" class="space-y-2 max-h-80 overflow-y-auto pr-1">
-                    <!-- Data transaksi termuat otomatis di sini -->
-                </div>
+                    </div>
             </div>
 
         </main>
     </div>
 
-    <!-- Firebase SDK Modules Setup -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        // Penyesuaian impor firestore untuk integrasi multi-modul
-        import { getFirestore as firestoreDB } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         let db, auth, provider, allowedEmails = [];
         let activeMusimId = "";
         let currentPanitiaName = "";
-        let cacheTransaksi = {}; // Menyimpan data sementara untuk fitur edit cepat
+        let cacheTransaksi = {}; 
 
         async function loadAdminSystem() {
             try {
@@ -146,7 +134,7 @@
                 const config = await response.json();
                 
                 const app = initializeApp(config);
-                db = firestoreDB(app);
+                db = getFirestore(app);
                 auth = getAuth(app);
                 provider = new GoogleAuthProvider();
 
@@ -210,9 +198,7 @@
             if (!nama || !gaji) { alert("Semua kolom input musim wajib diisi!"); return; }
 
             try {
-                // Sesi musim ditambahkan secara manual ke koleksi database
-                const { collection: coll, addDoc: add } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                await add(coll(db, "sesi_musim"), {
+                await addDoc(collection(db, "sesi_musim"), {
                     nama: nama,
                     gajiPanitia: Number(gaji),
                     status: "aktif"
@@ -226,9 +212,8 @@
 
         async function initAdminPanel() {
             try {
-                const { collection: coll, getDocs: get } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
                 const selectMusim = document.getElementById('admin-select-musim');
-                const querySnapshot = await get(coll(db, "sesi_musim"));
+                const querySnapshot = await getDocs(collection(db, "sesi_musim"));
                 selectMusim.innerHTML = "";
                 
                 querySnapshot.forEach((doc) => {
@@ -251,7 +236,7 @@
                     muatHistoriTransaksi(activeMusimId);
                 }
             } catch (e) {
-                alert("Gagal memproses pilihan opsi database.");
+                alert("Gagal memproses pilihan opsi database: " + e.message);
             }
         }
 
@@ -260,9 +245,8 @@
             container.innerHTML = `<p class="text-center text-xs text-slate-500 py-4">Membaca catatan kas...</p>`;
 
             try {
-                const { collection: coll, query: qry, where: whr, getDocs: get } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                const q = qry(coll(db, "transaksi"), whr("musimId", "==", musimId));
-                const querySnapshot = await get(q);
+                const q = query(collection(db, "transaksi"), where("musimId", "==", musimId));
+                const querySnapshot = await getDocs(q);
                 let listData = [];
                 cacheTransaksi = {}; 
 
@@ -309,7 +293,6 @@
             }
         }
 
-        // Fungsi Memuat Data ke Form untuk Aksi Edit
         window.persiapkanEdit = function(id) {
             const data = cacheTransaksi[id];
             if (!data) return;
@@ -328,14 +311,12 @@
                 toggleFormInput('keluar');
             }
 
-            // Mengubah tampilan form menjadi mode edit
             document.getElementById('form-tx-title').textContent = "📝 Edit Catatan Kas Swadaya";
             document.getElementById('form-tx-title').className = "text-xs font-bold text-amber-400 uppercase tracking-wider";
             document.getElementById('btn-submit-tx').className = "w-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold py-3 rounded-lg transition-all shadow-md";
             document.getElementById('btn-submit-tx').textContent = "💾 Perbarui Data Kas";
             document.getElementById('btn-batal-edit').classList.remove('hidden');
             
-            // Geser otomatis layar HP ke area form agar nyaman
             document.getElementById('form-tx-title').scrollIntoView({ behavior: 'smooth' });
         };
 
@@ -373,7 +354,7 @@
                 jenis: jenis,
                 nama: nama,
                 nominal: Number(nominal),
-                panitia: currentPanitiaName // Nama panitia otomatis tercantum dan terikat pada dokumen
+                panitia: currentPanitiaName 
             };
 
             if (jenis === 'masuk') {
@@ -387,18 +368,14 @@
             }
 
             try {
-                const { collection: coll, addDoc: add, doc: docRef, updateDoc: update } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                
                 if (editId) {
-                    // Eksekusi Update jika dalam mode edit
-                    await update(docRef(db, "transaksi", editId), payloadData);
+                    await updateDoc(doc(db, "transaksi", editId), payloadData);
                     alert("Catatan kas berhasil diperbarui!");
                     batalEdit();
                 } else {
-                    // Eksekusi Simpan Data Baru biasa
                     payloadData.timestamp = d.getTime();
                     payloadData.tanggal = tglOtomatis;
-                    await add(coll(db, "transaksi"), payloadData);
+                    await addDoc(collection(db, "transaksi"), payloadData);
                     alert("Catatan kas berhasil disimpan!");
                     batalEdit();
                 }
@@ -412,8 +389,7 @@
         window.hapusDataTransaksi = async function(id) {
             if (!confirm("Apakah Anda yakin ingin menghapus permanen catatan kas ini?")) return;
             try {
-                const { doc: docRef, deleteDoc: del } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
-                await del(docRef(db, "transaksi", id));
+                await deleteDoc(doc(db, "transaksi", id));
                 alert("Catatan kas telah berhasil dihapus!");
                 if (document.getElementById('tx-edit-id').value === id) batalEdit();
                 muatHistoriTransaksi(activeMusimId);
