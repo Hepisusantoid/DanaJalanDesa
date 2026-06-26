@@ -9,13 +9,11 @@
 </head>
 <body class="bg-slate-900 text-slate-100 antialiased flex flex-col min-h-screen">
 
-    <!-- LAYER LOADING KONEKSI -->
     <div id="loading-screen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center p-4">
         <div class="text-3xl animate-bounce">🔑</div>
         <p class="text-xs text-slate-500 mt-3 font-medium">Memverifikasi gerbang admin...</p>
     </div>
 
-    <!-- LAYER PROTEKSI: WAJIB LOGIN & WHITELIST EMAIL -->
     <div id="admin-auth-screen" class="fixed inset-0 bg-slate-950 z-40 flex items-center justify-center p-4 hidden">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl w-full max-w-sm space-y-4 text-center">
             <div class="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto text-blue-400 text-xl font-bold">🔑</div>
@@ -30,48 +28,106 @@
         </div>
     </div>
 
-    <!-- AREA KERJA ADMIN -->
     <div id="admin-main-content" class="hidden flex flex-col min-h-screen">
-        <header class="bg-slate-800 border-b border-slate-700 py-3 px-4">
+        <header class="bg-slate-800 border-b border-slate-700 py-3 px-4 sticky top-0 z-30">
             <div class="max-w-md mx-auto flex justify-between items-center">
                 <div>
                     <h1 class="text-sm font-bold text-slate-200">Ruang Kerja Panitia</h1>
                     <p id="admin-email-display" class="text-[10px] text-slate-400"></p>
                 </div>
                 <div class="flex gap-2">
-                    <a href="/" class="text-[11px] text-slate-400 hover:text-white font-medium self-center">← Web Depan</a>
-                    <button onclick="logoutAdmin()" class="bg-slate-700 text-xs px-2.5 py-1 rounded-lg">Keluar</button>
+                    <a href="/" class="text-[11px] bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1.5 rounded-lg font-medium transition-all">← Web Warga</a>
+                    <button onclick="logoutAdmin()" class="bg-rose-700/80 hover:bg-rose-700 text-white text-xs px-2.5 py-1 rounded-lg">Keluar</button>
                 </div>
             </div>
         </header>
 
-        <main class="max-w-md w-full mx-auto px-4 py-4 space-y-4 flex-1">
-            <p class="text-xs text-slate-400">👋 Anda berhasil masuk sebagai panitia. Sekarang Anda dapat menambah sesi musim baru atau memasukkan catatan kas masuk/keluar.</p>
+        <main class="max-w-md w-full mx-auto px-4 py-4 space-y-5 flex-1 mb-10">
             
-            <div class="bg-slate-800 p-4 rounded-xl border border-slate-700 text-center py-10">
-                <span class="text-2xl block mb-2">⚡</span>
-                <p class="text-xs font-semibold text-slate-300">Sistem Autentikasi Serverless Siap</p>
-                <p class="text-[11px] text-slate-500 mt-1">Gudang data Anda aman dan tersembunyi sepenuhnya di Vercel.</p>
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
+                <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">🌾 Tambah Sesi Musim Baru</h3>
+                <div class="space-y-2">
+                    <input type="text" id="musim-nama" placeholder="Contoh: Rendeng 2026 / Gadu 2026" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none focus:border-emerald-500">
+                    <input type="number" id="musim-gaji" placeholder="Anggaran Insentif Panitia (Rp)" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none focus:border-emerald-500">
+                    <button onclick="tambahMusim()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-lg transition-all shadow-md">
+                        + Buat Sesi Musim
+                    </button>
+                </div>
             </div>
+
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
+                <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider">✍️ Pencatatan Kas Swadaya</h3>
+                
+                <div class="space-y-2">
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1 font-medium">1. PILIH SESI MUSIM</label>
+                        <select id="admin-select-musim" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none"></select>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1 font-medium">2. JENIS KAS</label>
+                        <div class="flex gap-2">
+                            <label class="flex-1 bg-slate-900 border border-slate-700 p-2.5 rounded-lg flex items-center gap-2 text-xs cursor-pointer">
+                                <input type="radio" name="tx-jenis" value="masuk" checked onchange="toggleFormInput('masuk')"> Setoran Panen (+)
+                            </label>
+                            <label class="flex-1 bg-slate-900 border border-slate-700 p-2.5 rounded-lg flex items-center gap-2 text-xs cursor-pointer">
+                                <input type="radio" name="tx-jenis" value="keluar" onchange="toggleFormInput('keluar')"> Pengeluaran Kas (-)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1 font-medium">3. NAMA WARGA / KETERANGAN KEPERLUAN</label>
+                        <input type="text" id="tx-nama" placeholder="Nama warga pembayar / Nama keperluan logistik" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none">
+                    </div>
+
+                    <div id="form-khusus-masuk" class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1 font-medium">LOKASI LAHAN</label>
+                            <input type="text" id="tx-lokasi" placeholder="Misal: Etan, Ngomah" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 block mb-1 font-medium">JUMLAH KARUNG</label>
+                            <input type="number" id="tx-karung" placeholder="Jumlah Karung" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-[10px] text-slate-400 block mb-1 font-medium">4. NOMINAL RUPIAH (RP)</label>
+                        <input type="number" id="tx-nominal" placeholder="Nominal Uang (Rp)" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none">
+                    </div>
+
+                    <button onclick="simpanTransaksi()" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold py-3 rounded-lg transition-all shadow-md pt-2.5">
+                        💾 Simpan Catatan Kas
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
+                <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">📑 Daftar Catatan Musim Ini</h3>
+                <div id="admin-list-transaksi" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+                    </div>
+            </div>
+
         </main>
     </div>
 
-    <!-- Firebase Admin Logic via Serverless -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-        let auth, provider, allowedEmails = [];
+        let db, auth, provider, allowedEmails = [];
+        let activeMusimId = "";
 
         async function loadAdminSystem() {
             try {
                 const response = await fetch('/api/config');
-                if (!response.ok) {
-                    throw new Error("Gagal terhubung ke API Vercel Admin (Status: " + response.status + ")");
-                }
+                if (!response.ok) throw new Error("Gagal terhubung ke API Vercel Admin (Status: " + response.status + ")");
                 const config = await response.json();
                 
                 const app = initializeApp(config);
+                db = getFirestore(app);
                 auth = getAuth(app);
                 provider = new GoogleAuthProvider();
 
@@ -88,6 +144,7 @@
                             document.getElementById('admin-auth-screen').classList.add('hidden');
                             document.getElementById('admin-main-content').classList.remove('hidden');
                             document.getElementById('admin-email-display').textContent = "Login: " + user.email;
+                            initAdminPanel();
                         } else {
                             document.getElementById('error-admin-msg').textContent = "Akses Ditolak! Email (" + user.email + ") tidak terdaftar sebagai Panitia.";
                             document.getElementById('error-admin-msg').classList.remove('hidden');
@@ -100,9 +157,9 @@
                 });
             } catch (err) {
                 document.getElementById('loading-screen').innerHTML = `
-                    <div class="text-center p-6 bg-slate-800 rounded-2xl max-w-xs mx-auto">
+                    <div class="text-center p-6 bg-slate-800 rounded-2xl max-w-xs mx-auto border border-rose-500/20">
                         <p class="text-rose-400 font-bold text-sm">❌ Sistem Admin Bermasalah</p>
-                        <p class="text-slate-400 text-xs mt-2">${err.message}</p>
+                        <p class="text-slate-400 text-xs mt-2 text-left bg-slate-950 p-3 rounded-lg">${err.message}</p>
                     </div>
                 `;
             }
@@ -115,6 +172,174 @@
 
         window.logoutAdmin = function() {
             signOut(auth).then(() => { location.reload(); });
+        };
+
+        // Mengatur tampilan input form dinamis
+        window.toggleFormInput = function(jenis) {
+            const khususMasuk = document.getElementById('form-khusus-masuk');
+            if (jenis === 'masuk') {
+                khususMasuk.classList.remove('hidden');
+            } else {
+                khususMasuk.classList.add('hidden');
+            }
+        };
+
+        // Buat Sesi Musim Baru
+        window.tambahMusim = async function() {
+            const nama = document.getElementById('musim-nama').value.trim();
+            const gaji = document.getElementById('musim-gaji').value.trim();
+
+            if (!nama || !gaji) { alert("Semua kolom input musim wajib diisi!"); return; }
+
+            try {
+                await addDoc(collection(db, "sesi_musim"), {
+                    nama: nama,
+                    gajiPanitia: Number(gaji),
+                    status: "aktif"
+                });
+                alert("Sesi Musim Baru berhasil disimpan!");
+                location.reload();
+            } catch (e) {
+                alert("Gagal membuat musim baru: " + e.message);
+            }
+        };
+
+        // Ambil Daftar Musim untuk Dropdown Drop
+        async function initAdminPanel() {
+            try {
+                const selectMusim = document.getElementById('admin-select-musim');
+                const querySnapshot = await getDocs(collection(db, "sesi_musim"));
+                selectMusim.innerHTML = "";
+                
+                querySnapshot.forEach((doc) => {
+                    let data = doc.data();
+                    let opt = document.createElement('option');
+                    opt.value = doc.id;
+                    opt.textContent = data.nama;
+                    if (data.status === 'aktif') opt.selected = true;
+                    selectMusim.appendChild(opt);
+                });
+
+                selectMusim.addEventListener('change', () => {
+                    activeMusimId = selectMusim.value;
+                    muatHistoriTransaksi(activeMusimId);
+                });
+
+                if (selectMusim.value) {
+                    activeMusimId = selectMusim.value;
+                    muatHistoriTransaksi(activeMusimId);
+                }
+            } catch (e) {
+                alert("Gagal memproses pilihan opsi database.");
+            }
+        }
+
+        // Ambil Data Histori Berdasarkan Musim
+        async function muatHistoriTransaksi(musimId) {
+            const container = document.getElementById('admin-list-transaksi');
+            container.innerHTML = `<p class="text-center text-xs text-slate-500 py-4">Membaca catatan kas...</p>`;
+
+            try {
+                const q = query(collection(db, "transaksi"), where("musimId", "==", musimId));
+                const querySnapshot = await getDocs(q);
+                let listData = [];
+
+                querySnapshot.forEach((doc) => {
+                    listData.push({ id: doc.id, ...doc.data() });
+                });
+
+                container.innerHTML = "";
+                if (listData.length === 0) {
+                    container.innerHTML = `<p class="text-center text-xs text-slate-500 py-4">Belum ada transaksi di musim ini.</p>`;
+                    return;
+                }
+
+                listData.sort((a,b) => b.timestamp - a.timestamp).forEach(t => {
+                    let item = document.createElement('div');
+                    item.className = "bg-slate-900 rounded-lg p-3 flex justify-between items-center border border-slate-800";
+                    
+                    let labelWarna = t.jenis === 'masuk' ? 'text-emerald-400 bg-emerald-500/10' : 'text-rose-400 bg-rose-500/10';
+                    let ttdTambahan = t.jenis === 'masuk' ? `<p class="text-[11px] text-slate-500">${t.lokasi} • ${t.jumlahKarung} Karung</p>` : `<p class="text-[11px] text-slate-500">Ket: ${t.keterangan || '-'}</p>`;
+
+                    item.innerHTML = `
+                        <div class="space-y-0.5">
+                            <span class="text-[9px] px-1.5 py-0.5 rounded ${labelWarna} uppercase font-bold">${t.jenis === 'masuk' ? 'Setoran' : 'Keluar'}</span>
+                            <h4 class="text-xs font-bold text-slate-200 mt-1">${t.nama}</h4>
+                            ${ttdTambahan}
+                            <p class="text-[10px] text-slate-500">${t.tanggal}</p>
+                        </div>
+                        <div class="text-right flex flex-col items-end gap-2">
+                            <span class="text-xs font-bold ${t.jenis === 'masuk' ? 'text-emerald-400' : 'text-rose-400'}">Rp ${Number(t.nominal).toLocaleString('id-ID')}</span>
+                            <button onclick="hapusDataTransaksi('${t.id}')" class="text-[10px] text-rose-500 hover:text-rose-400 font-medium bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20 transition-all">🗑️ Hapus</button>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            } catch (e) {
+                container.innerHTML = `<p class="text-center text-xs text-rose-400 py-4">Gagal memuat histori kas.</p>`;
+            }
+        }
+
+        // Simpan Data Transaksi Baru
+        window.simpanTransaksi = async function() {
+            if (!activeMusimId) { alert("Pilih sesi musim terlebih dahulu!"); return; }
+
+            const jenis = document.querySelector('input[name="tx-jenis"]:checked').value;
+            const nama = document.getElementById('tx-nama').value.trim();
+            const nominal = document.getElementById('tx-nominal').value.trim();
+            
+            const lokasi = document.getElementById('tx-lokasi').value.trim();
+            const karung = document.getElementById('tx-karung').value.trim();
+
+            if (!nama || !nominal) { alert("Nama dan nominal uang wajib diisi!"); return; }
+
+            // Menghasilkan format tanggal otomatis (Hari ini)
+            const d = new Date();
+            const tglOtomatis = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+
+            let payloadData = {
+                musimId: activeMusimId,
+                jenis: jenis,
+                nama: nama,
+                nominal: Number(nominal),
+                tanggal: tglOtomatis,
+                timestamp: d.getTime()
+            };
+
+            if (jenis === 'masuk') {
+                payloadData.lokasi = lokasi || "Lahan Warga";
+                payloadData.jumlahKarung = Number(karung) || 0;
+            } else {
+                payloadData.keterangan = nama; // Menyalin nama keperluan ke kolom keterangan
+            }
+
+            try {
+                await addDoc(collection(db, "transaksi"), payloadData);
+                alert("Catatan kas berhasil disimpan!");
+                
+                // Reset form isian
+                document.getElementById('tx-nama').value = "";
+                document.getElementById('tx-nominal').value = "";
+                document.getElementById('tx-lokasi').value = "";
+                document.getElementById('tx-karung').value = "";
+                
+                // Segarkan list data
+                muatHistoriTransaksi(activeMusimId);
+            } catch (e) {
+                alert("Gagal menyimpan transaksi: " + e.message);
+            }
+        };
+
+        // Hapus Data Transaksi Terpilih
+        window.hapusDataTransaksi = async function(id) {
+            if (!confirm("Apakah Anda yakin ingin menghapus permanen catatan kas ini?")) return;
+            try {
+                await deleteDoc(doc(db, "transaksi", id));
+                alert("Catatan kas telah berhasil dihapus!");
+                muatHistoriTransaksi(activeMusimId);
+            } catch (e) {
+                alert("Gagal menghapus data: " + e.message);
+            }
         };
 
         loadAdminSystem();
