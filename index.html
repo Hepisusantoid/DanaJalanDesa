@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🌾 DanaJalan Desa - Transparansi Swadaya</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌾</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -26,10 +27,11 @@
                 <h3 class="text-base font-bold text-slate-800">Verifikasi Warga Desa</h3>
                 <p class="text-xs text-slate-500 mt-1">Silakan masuk menggunakan akun Google Anda terlebih dahulu untuk mengakses laporan transparansi.</p>
             </div>
-            <button onclick="loginGoogleWarga()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+            <button id="btn-login-warga" onclick="loginGoogleWarga()" class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-semibold text-xs py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
                 <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.24 10.285V13.4 h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C17.955 2.192 15.34 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c6.478 0 10.793-4.537 10.793-10.986 0-.746-.08-1.32-.176-1.886H12.24z"/></svg>
                 Sign In dengan Google
             </button>
+            <p id="error-warga-msg" class="text-xs text-rose-500 font-semibold hidden bg-rose-50 p-2 rounded-lg border border-rose-200"></p>
         </div>
     </div>
 
@@ -42,6 +44,7 @@
                 <p class="text-xs text-slate-500 mt-1">Akun Google terverifikasi. Sekarang, masukkan nama asli Anda sebagai warga untuk dicatat dalam sistem.</p>
             </div>
             <input type="text" id="input-nama-warga" placeholder="Ketik Nama Anda..." class="w-full bg-slate-50 border border-slate-300 rounded-xl text-xs p-3 text-center focus:ring-2 focus:ring-emerald-500 outline-none font-semibold">
+            <p id="error-nama-msg" class="text-xs text-rose-500 font-semibold hidden"></p>
             <button onclick="simpanNamaWarga()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-3 rounded-xl shadow-md transition-all">
                 Masuk & Lihat Laporan
             </button>
@@ -60,6 +63,7 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-1.5">
+                    <span id="status-koneksi" class="text-[10px] px-2 py-1 rounded-lg font-semibold bg-emerald-700 text-emerald-100">🟢</span>
                     <a href="/admin.html" class="bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition-all">
                         Panitia 🔑
                     </a>
@@ -127,28 +131,55 @@
         let currentTab = 'masuk';
         let semuaTransaksi = [];
 
+        function pesanErrorAuth(err) {
+            const kode = err?.code || "";
+            const mapping = {
+                "auth/popup-closed-by-user": "Jendela login ditutup sebelum selesai. Coba lagi.",
+                "auth/cancelled-popup-request": "Permintaan login sebelumnya dibatalkan. Coba lagi.",
+                "auth/network-request-failed": "Koneksi internet bermasalah. Periksa jaringan HP Anda dan coba lagi.",
+                "auth/popup-blocked": "Pop-up login diblokir browser. Izinkan pop-up untuk situs ini lalu coba lagi.",
+                "auth/too-many-requests": "Terlalu banyak percobaan. Tunggu beberapa saat lalu coba lagi."
+            };
+            return mapping[kode] || ("Gagal login: " + (err?.message || "kesalahan tidak diketahui"));
+        }
+
+        function pesanErrorFirestore(err) {
+            const kode = err?.code || "";
+            if (kode === "permission-denied") return "Akses baca laporan ditolak oleh server. Hubungi panitia jika ini terus terjadi.";
+            if (kode === "unavailable") return "Server tidak bisa dijangkau. Periksa koneksi internet Anda.";
+            return "Gagal memuat data: " + (err?.message || "kesalahan tidak diketahui");
+        }
+
+        function tampilkanStatusOffline(offline) {
+            const el = document.getElementById('status-koneksi');
+            if (!el) return;
+            el.textContent = offline ? "🔴" : "🟢";
+            el.title = offline ? "Koneksi terputus" : "Online";
+        }
+        window.addEventListener('offline', () => tampilkanStatusOffline(true));
+        window.addEventListener('online', () => tampilkanStatusOffline(false));
+
         async function loadSystem() {
             try {
                 const response = await fetch('/api/config');
-                
-                // Cek jika API mengembalikan eror halaman hilang (404) atau server crash (500)
+
                 if (!response.ok) {
                     throw new Error("Gagal terhubung ke API Vercel (Status: " + response.status + "). Pastikan letak file api/config.js Anda sudah benar.");
                 }
-                
+
                 const config = await response.json();
-                
+
                 if (!config.apiKey || config.apiKey === "") {
                     throw new Error("Kunci Firebase masih kosong. Periksa apakah Environment Variables di Dashboard Vercel Anda sudah tersimpan dengan benar.");
                 }
-                
+
                 const app = initializeApp(config);
                 db = getFirestore(app);
                 auth = getAuth(app);
                 provider = new GoogleAuthProvider();
 
                 document.getElementById('loading-screen').classList.add('hidden');
-                
+
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         document.getElementById('warga-auth-screen').classList.add('hidden');
@@ -168,20 +199,35 @@
                 document.getElementById('loading-screen').innerHTML = `
                     <div class="text-center p-6 bg-slate-800 rounded-2xl max-w-xs mx-auto border border-rose-500/20">
                         <p class="text-rose-400 font-bold text-sm">❌ Terjadi Kendala Sistem</p>
-                        <p class="text-slate-300 text-xs mt-2 text-left bg-slate-950 p-3 rounded-lg overflow-auto">${err.message}</p>
-                        <button onclick="location.reload()" class="mt-4 bg-slate-700 text-white text-xs px-4 py-2 rounded-lg font-semibold">Segarkan Halaman</button>
+                        <p class="text-slate-300 text-xs mt-2 text-left bg-slate-950 p-3 rounded-lg overflow-auto break-words">${err.message}</p>
+                        <button onclick="location.reload()" class="mt-4 bg-slate-700 hover:bg-slate-600 text-white text-xs px-4 py-2 rounded-lg font-semibold">🔄 Segarkan Halaman</button>
                     </div>
                 `;
             }
         }
 
         window.loginGoogleWarga = function() {
-            signInWithPopup(auth, provider).catch(err => alert("Gagal Login Google: " + err.message));
+            const btn = document.getElementById('btn-login-warga');
+            const errEl = document.getElementById('error-warga-msg');
+            errEl.classList.add('hidden');
+            btn.disabled = true;
+            signInWithPopup(auth, provider)
+                .catch(err => {
+                    errEl.textContent = pesanErrorAuth(err);
+                    errEl.classList.remove('hidden');
+                })
+                .finally(() => { btn.disabled = false; });
         };
 
         window.simpanNamaWarga = function() {
+            const errEl = document.getElementById('error-nama-msg');
             const nama = document.getElementById('input-nama-warga').value.trim();
-            if(!nama) { alert("Nama tidak boleh kosong!"); return; }
+            if (!nama) {
+                errEl.textContent = "Nama tidak boleh kosong.";
+                errEl.classList.remove('hidden');
+                return;
+            }
+            errEl.classList.add('hidden');
             localStorage.setItem('nama_warga_tercatat', nama);
             tampilkanDashboard(nama);
         };
@@ -215,10 +261,17 @@
         }
 
         async function initSistem() {
+            const musimSelect = document.getElementById('select-musim');
+            musimSelect.innerHTML = `<option>Memuat...</option>`;
             try {
-                const musimSelect = document.getElementById('select-musim');
                 const querySnapshot = await getDocs(collection(db, "sesi_musim"));
                 musimSelect.innerHTML = "";
+
+                if (querySnapshot.empty) {
+                    musimSelect.innerHTML = `<option value="">-- Belum ada sesi musim --</option>`;
+                    return;
+                }
+
                 querySnapshot.forEach((doc) => {
                     let data = doc.data();
                     let opt = document.createElement('option');
@@ -230,32 +283,43 @@
                 musimSelect.addEventListener('change', () => muatDataMusim(musimSelect.value));
                 if(musimSelect.value) muatDataMusim(musimSelect.value);
             } catch(e) {
-                alert("Gagal membaca database Firestore. Periksa aturan 'Rules' Firestore Anda.");
+                musimSelect.innerHTML = `<option value="">-- Gagal memuat --</option>`;
+                document.getElementById('list-container').innerHTML = `<p class="text-center text-xs text-rose-500 py-6">${pesanErrorFirestore(e)}</p>`;
             }
         }
 
         async function muatDataMusim(musimId) {
             if(!musimId) return;
-            const docRef = doc(db, "sesi_musim", musimId);
-            const docSnap = await getDoc(docRef);
-            if(docSnap.exists()) { document.getElementById('info-gaji-text').textContent = formatRupiah(docSnap.data().gajiPanitia || 0); }
+            document.getElementById('list-container').innerHTML = `
+                <div class="animate-pulse space-y-2">
+                    <div class="h-16 bg-slate-200 rounded-xl"></div>
+                    <div class="h-16 bg-slate-200 rounded-xl"></div>
+                    <div class="h-16 bg-slate-200 rounded-xl"></div>
+                </div>`;
+            try {
+                const docRef = doc(db, "sesi_musim", musimId);
+                const docSnap = await getDoc(docRef);
+                if(docSnap.exists()) { document.getElementById('info-gaji-text').textContent = formatRupiah(docSnap.data().gajiPanitia || 0); }
 
-            const q = query(collection(db, "transaksi"), where("musimId", "==", musimId));
-            const querySnapshot = await getDocs(q);
-            semuaTransaksi = [];
-            let totalMasuk = 0; let totalKeluar = 0;
+                const q = query(collection(db, "transaksi"), where("musimId", "==", musimId));
+                const querySnapshot = await getDocs(q);
+                semuaTransaksi = [];
+                let totalMasuk = 0; let totalKeluar = 0;
 
-            querySnapshot.forEach((doc) => {
-                let item = doc.data();
-                semuaTransaksi.push(item);
-                if(item.jenis === 'masuk') totalMasuk += Number(item.nominal);
-                if(item.jenis === 'keluar') totalKeluar += Number(item.nominal);
-            });
+                querySnapshot.forEach((doc) => {
+                    let item = doc.data();
+                    semuaTransaksi.push(item);
+                    if(item.jenis === 'masuk') totalMasuk += Number(item.nominal);
+                    if(item.jenis === 'keluar') totalKeluar += Number(item.nominal);
+                });
 
-            document.getElementById('total-masuk').textContent = formatRupiah(totalMasuk);
-            document.getElementById('total-keluar').textContent = formatRupiah(totalKeluar);
-            document.getElementById('saldo-utama').textContent = formatRupiah(totalMasuk - totalKeluar);
-            renderTransaksi();
+                document.getElementById('total-masuk').textContent = formatRupiah(totalMasuk);
+                document.getElementById('total-keluar').textContent = formatRupiah(totalKeluar);
+                document.getElementById('saldo-utama').textContent = formatRupiah(totalMasuk - totalKeluar);
+                renderTransaksi();
+            } catch (e) {
+                document.getElementById('list-container').innerHTML = `<p class="text-center text-xs text-rose-500 py-6">${pesanErrorFirestore(e)}</p>`;
+            }
         }
 
         function renderTransaksi() {
