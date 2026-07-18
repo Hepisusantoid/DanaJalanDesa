@@ -10,6 +10,15 @@
     <script>
         tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }
     </script>
+
+    <!-- GOOGLE ANALYTICS: ganti G-XXXXXXXXXX dengan Measurement ID asli dari Google Analytics kamu -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen">
 
@@ -115,6 +124,14 @@
 
             <div id="list-container" class="space-y-2"></div>
         </main>
+
+        <!-- TOMBOL HUBUNGI PANITIA VIA WHATSAPP (ganti nomor 6281234567890 dengan nomor panitia asli, format 62xxx tanpa + atau 0 di depan) -->
+        <a id="btn-whatsapp-warga" href="https://wa.me/6281234567890?text=Halo%20Panitia%2C%20saya%20warga%20ingin%20bertanya%20soal%20DanaJalan%20Desa"
+           target="_blank" rel="noopener"
+           onclick="lacakKlikWhatsapp()"
+           class="fixed bottom-20 right-4 z-40 bg-emerald-500 hover:bg-emerald-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl">
+            💬
+        </a>
 
         <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400 fixed bottom-0 left-0 right-0 z-30 max-w-md mx-auto">
             <p>© 2026 Swadaya Masyarakat Mandiri</p>
@@ -246,6 +263,16 @@
 
         function formatRupiah(angka) { return "Rp " + Number(angka).toLocaleString('id-ID'); }
 
+        // Kirim event klik tombol WhatsApp ke Google Analytics (GA4)
+        window.lacakKlikWhatsapp = function() {
+            if (typeof gtag === 'function') {
+                gtag('event', 'klik_whatsapp_warga', {
+                    event_category: 'engagement',
+                    event_label: 'Tombol Hubungi Panitia WhatsApp'
+                });
+            }
+        };
+
         window.switchTab = function(tab) {
             currentTab = tab;
             const btnMasuk = document.getElementById('btn-masuk');
@@ -334,7 +361,8 @@
                 let card = document.createElement('div');
                 card.className = "bg-white rounded-xl p-3.5 shadow-sm border border-slate-100 flex justify-between items-center";
                 let htmlDetail = currentTab === 'masuk' ? `<p class="text-xs text-slate-500 font-medium">${t.lokasi} • ${t.jumlahKarung} Karung</p>` : `<p class="text-xs text-slate-500 font-medium">${t.keterangan}</p>`;
-                card.innerHTML = `<div><p class="text-[10px] text-slate-400 font-medium">${t.tanggal}</p><h5 class="text-sm font-bold text-slate-800">${t.nama}</h5>${htmlDetail}</div><div class="text-right"><span class="inline-block ${currentTab === 'masuk' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'} text-xs font-bold px-2 py-1 rounded-lg">${currentTab === 'masuk' ? '+' : '-'}${formatRupiah(t.nominal)}</span></div>`;
+                let dicatatOleh = t.panitia ? `<p class="text-[10px] text-slate-400 mt-0.5">✍️ Dicatat oleh: ${t.panitia}</p>` : '';
+                card.innerHTML = `<div><p class="text-[10px] text-slate-400 font-medium">${t.tanggal}</p><h5 class="text-sm font-bold text-slate-800">${t.nama}</h5>${htmlDetail}${dicatatOleh}</div><div class="text-right"><span class="inline-block ${currentTab === 'masuk' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'} text-xs font-bold px-2 py-1 rounded-lg">${currentTab === 'masuk' ? '+' : '-'}${formatRupiah(t.nominal)}</span></div>`;
                 container.appendChild(card);
             });
         }
