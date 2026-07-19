@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🌾 DanaJalan Desa - Transparansi Swadaya</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌾</text></svg>">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }
+        tailwind.config = { theme: { extend: {
+            fontFamily: { sans: ['Inter', 'sans-serif'] },
+            colors: { moss: { 50:'#f2f7f0', 100:'#dfeeda', 600:'#3f7d34', 700:'#2f6127', 800:'#254e20', 900:'#173413' } }
+        } } }
     </script>
 
-    <!-- GOOGLE ANALYTICS: ganti G-XXXXXXXXXX dengan Measurement ID asli dari Google Analytics kamu -->
+    <!-- GOOGLE ANALYTICS: ganti G-XXXXXXXXXX dengan Measurement ID asli -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -20,80 +23,74 @@
         gtag('config', 'G-XXXXXXXXXX');
     </script>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen">
+<body class="bg-moss-50 text-slate-800 antialiased flex flex-col min-h-screen">
 
-    <!-- LAYER LOADING KONEKSI -->
-    <div id="loading-screen" class="fixed inset-0 bg-slate-900 z-50 flex flex-col items-center justify-center p-4">
+    <div id="loading-screen" class="fixed inset-0 bg-moss-900 z-50 flex flex-col items-center justify-center p-4">
         <div class="text-3xl animate-bounce">🌾</div>
-        <p class="text-xs text-slate-400 mt-3 font-medium">Menghubungkan ke sistem desa...</p>
+        <p class="text-xs text-moss-100 mt-3 font-medium">Menghubungkan ke sistem desa...</p>
     </div>
 
-    <!-- LAYER 1: LOGIN GOOGLE UNTUK WARGA -->
-    <div id="warga-auth-screen" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center p-4 hidden">
+    <div id="warga-auth-screen" class="fixed inset-0 bg-moss-900/50 backdrop-blur-sm z-40 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm space-y-4 text-center">
-            <div class="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-xl">🌾</div>
+            <div class="w-12 h-12 bg-moss-100 rounded-full flex items-center justify-center mx-auto text-xl">🌾</div>
             <div>
                 <h3 class="text-base font-bold text-slate-800">Verifikasi Warga Desa</h3>
                 <p class="text-xs text-slate-500 mt-1">Silakan masuk menggunakan akun Google Anda terlebih dahulu untuk mengakses laporan transparansi.</p>
             </div>
-            <button id="btn-login-warga" onclick="loginGoogleWarga()" class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-semibold text-xs py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
+            <button id="btn-login-warga" onclick="loginGoogleWarga()" class="w-full bg-moss-700 hover:bg-moss-800 disabled:bg-slate-400 text-white font-semibold text-xs py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2">
                 <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12.24 10.285V13.4 h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l2.427-2.334C17.955 2.192 15.34 1 12.24 1 6.033 1 1 6.033 1 12.24s5.033 11.24 11.24 11.24c6.478 0 10.793-4.537 10.793-10.986 0-.746-.08-1.32-.176-1.886H12.24z"/></svg>
                 Sign In dengan Google
             </button>
-            <p id="error-warga-msg" class="text-xs text-rose-500 font-semibold hidden bg-rose-50 p-2 rounded-lg border border-rose-200"></p>
+            <p id="error-warga-msg" class="text-xs text-rose-600 font-semibold hidden bg-rose-50 p-2 rounded-lg border border-rose-200"></p>
         </div>
     </div>
 
-    <!-- LAYER 2: FORM INPUT NAMA WARGA -->
-    <div id="warga-nama-screen" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 flex items-center justify-center p-4 hidden">
+    <div id="warga-nama-screen" class="fixed inset-0 bg-moss-900/50 backdrop-blur-sm z-40 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm space-y-4 text-center">
-            <div class="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center mx-auto text-xl">👤</div>
+            <div class="w-12 h-12 bg-moss-100 rounded-full flex items-center justify-center mx-auto text-xl">👤</div>
             <div>
                 <h3 class="text-base font-bold text-slate-800">Identitas Pengunjung</h3>
-                <p class="text-xs text-slate-500 mt-1">Akun Google terverifikasi. Sekarang, masukkan nama asli Anda sebagai warga untuk dicatat dalam sistem.</p>
+                <p class="text-xs text-slate-500 mt-1">Akun Google terverifikasi. Masukkan nama asli Anda sebagai warga untuk dicatat dalam sistem.</p>
             </div>
-            <input type="text" id="input-nama-warga" placeholder="Ketik Nama Anda..." class="w-full bg-slate-50 border border-slate-300 rounded-xl text-xs p-3 text-center focus:ring-2 focus:ring-emerald-500 outline-none font-semibold">
-            <p id="error-nama-msg" class="text-xs text-rose-500 font-semibold hidden"></p>
-            <button onclick="simpanNamaWarga()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-3 rounded-xl shadow-md transition-all">
+            <input type="text" id="input-nama-warga" placeholder="Ketik Nama Anda..." class="w-full bg-moss-50 border border-slate-300 rounded-xl text-xs p-3 text-center focus:ring-2 focus:ring-moss-600 outline-none font-semibold">
+            <p id="error-nama-msg" class="text-xs text-rose-600 font-semibold hidden"></p>
+            <button onclick="simpanNamaWarga()" class="w-full bg-moss-600 hover:bg-moss-700 text-white font-semibold text-xs py-3 rounded-xl shadow-md transition-all">
                 Masuk & Lihat Laporan
             </button>
         </div>
     </div>
 
-    <!-- LAYER 3: MAIN DASHBOARD UTAMA -->
     <div id="main-dashboard-content" class="hidden flex flex-col min-h-screen">
-        <header class="bg-emerald-600 text-white shadow-md sticky top-0 z-30">
+        <header class="bg-gradient-to-r from-moss-700 to-moss-600 text-white shadow-md sticky top-0 z-30">
             <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
                 <div class="flex items-center gap-2">
-                    <div class="p-2 bg-emerald-700 rounded-lg">🌾</div>
+                    <div class="p-2 bg-white/15 rounded-lg">🌾</div>
                     <div>
-                        <h1 class="text-base font-bold">DanaJalan Desa</h1>
-                        <p id="salam-warga" class="text-[11px] text-emerald-200 font-medium">Halo, Warga</p>
+                        <h1 class="text-base font-extrabold tracking-tight">DanaJalan Desa</h1>
+                        <p id="salam-warga" class="text-[11px] text-moss-100 font-medium">Halo, Warga</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-1.5">
-                    <span id="status-koneksi" class="text-[10px] px-2 py-1 rounded-lg font-semibold bg-emerald-700 text-emerald-100">🟢</span>
-                    <a href="/admin.html" class="bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition-all">
-                        Panitia 🔑
-                    </a>
-                    <button onclick="logoutWarga()" class="bg-rose-700 hover:bg-rose-800 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition-all">
-                        Keluar
-                    </button>
+                    <span id="status-koneksi" class="text-[10px] px-2 py-1 rounded-lg font-semibold bg-white/15">🟢</span>
+                    <a href="/admin.html" class="bg-white/15 hover:bg-white/25 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition-all">Panitia 🔑</a>
+                    <button onclick="logoutWarga()" class="bg-rose-600/90 hover:bg-rose-600 text-white text-[11px] font-semibold px-2.5 py-1.5 rounded-lg transition-all">Keluar</button>
                 </div>
             </div>
         </header>
 
         <main class="max-w-md w-full mx-auto px-4 py-4 flex-1 space-y-4 mb-16">
-            <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-200 flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-500 uppercase">Pilih Sesi Musim:</span>
-                <select id="select-musim" class="bg-slate-100 border border-slate-300 rounded-lg text-xs font-semibold p-1.5 text-slate-700 focus:outline-none">
-                </select>
+
+            <!-- 6. MUSIM KAPAN -->
+            <div class="bg-white rounded-xl p-3 shadow-sm border border-moss-100 flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-500 uppercase">🗓️ Sesi Musim:</span>
+                <select id="select-musim" class="bg-moss-50 border border-moss-100 rounded-lg text-xs font-semibold p-1.5 text-slate-700 focus:outline-none"></select>
             </div>
 
-            <div class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white rounded-2xl p-5 shadow-md">
-                <p class="text-xs font-medium uppercase tracking-wider text-emerald-200">Sisa Saldo Kas Musim Ini</p>
+            <!-- 1. SALDO -->
+            <div class="bg-gradient-to-br from-moss-600 to-moss-800 text-white rounded-2xl p-5 shadow-md">
+                <p class="text-xs font-medium uppercase tracking-wider text-moss-100">Sisa Saldo Kas Musim Ini</p>
                 <h2 id="saldo-utama" class="text-3xl font-extrabold mt-1">Rp 0</h2>
-                <div class="mt-4 pt-3 border-t border-emerald-500/30 flex justify-between text-xs">
+                <div class="mt-4 pt-3 border-t border-white/20 flex justify-between text-xs">
                     <div>
                         <p class="opacity-75">Total Masuk (Bawon)</p>
                         <p id="total-masuk" class="font-semibold text-sm">Rp 0</p>
@@ -113,32 +110,52 @@
                 </div>
             </div>
 
-            <div class="flex bg-slate-200 p-1 rounded-xl gap-1">
-                <button id="btn-masuk" onclick="switchTab('masuk')" class="flex-1 text-center py-2 text-xs font-semibold rounded-lg bg-white text-emerald-700 shadow-sm">
-                    Setoran Panen (+)
-                </button>
-                <button id="btn-keluar" onclick="switchTab('keluar')" class="flex-1 text-center py-2 text-xs font-medium rounded-lg text-slate-600">
-                    Penggunaan Dana (-)
-                </button>
+            <!-- 2. PERATURAN -->
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-moss-100 space-y-1.5">
+                <h4 class="text-xs font-bold text-moss-700 uppercase flex items-center gap-1.5">📜 Peraturan Swadaya</h4>
+                <p id="teks-peraturan" class="text-xs text-slate-600 whitespace-pre-line leading-relaxed">Memuat peraturan...</p>
+                <p id="peraturan-info" class="text-[10px] text-slate-400"></p>
             </div>
 
+            <!-- 3. NAMA-NAMA PANITIA -->
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-moss-100 space-y-2">
+                <h4 class="text-xs font-bold text-moss-700 uppercase">🧑‍🌾 Panitia Pengelola Dana</h4>
+                <div id="daftar-panitia-warga" class="space-y-1.5"></div>
+            </div>
+
+            <!-- 4. PEMASUKAN & PENGELUARAN -->
+            <div class="flex bg-moss-100 p-1 rounded-xl gap-1">
+                <button id="btn-masuk" onclick="switchTab('masuk')" class="flex-1 text-center py-2 text-xs font-semibold rounded-lg bg-white text-moss-700 shadow-sm">Setoran Panen (+)</button>
+                <button id="btn-keluar" onclick="switchTab('keluar')" class="flex-1 text-center py-2 text-xs font-medium rounded-lg text-slate-600">Penggunaan Dana (-)</button>
+            </div>
             <div id="list-container" class="space-y-2"></div>
+
+            <!-- 5. RINGKASAN + KIRIM WHATSAPP -->
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-moss-100 space-y-3">
+                <h4 class="text-xs font-bold text-moss-700 uppercase">📤 Bagikan Ringkasan ke Grup WhatsApp</h4>
+                <p class="text-[11px] text-slate-500">Kirim ringkasan saldo musim ini ke grup WhatsApp warga secara manual — teks sudah disiapkan otomatis.</p>
+                <a id="btn-share-whatsapp" href="#" target="_blank" rel="noopener" onclick="lacakKlikWhatsapp()"
+                   class="w-full bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold py-2.5 rounded-lg flex items-center justify-center gap-2 transition-all">
+                    💬 Bagikan via WhatsApp
+                </a>
+            </div>
+
+            <!-- 7. MASUKAN DARI SISTEM -->
+            <div class="bg-moss-50 border border-moss-100 rounded-xl p-3.5 flex items-start gap-2.5">
+                <span>💡</span>
+                <div>
+                    <h4 class="text-xs font-bold text-moss-800 uppercase">Masukan</h4>
+                    <p class="text-xs text-moss-700 mt-0.5">Pastikan kesepakatan potongan bawon ini disahkan lewat musyawarah desa dengan berita acara tertulis, agar punya dasar yang jelas bila suatu saat dipertanyakan.</p>
+                </div>
+            </div>
+
         </main>
 
-        <!-- TOMBOL HUBUNGI PANITIA VIA WHATSAPP (ganti nomor 6281234567890 dengan nomor panitia asli, format 62xxx tanpa + atau 0 di depan) -->
-        <a id="btn-whatsapp-warga" href="https://wa.me/6281234567890?text=Halo%20Panitia%2C%20saya%20warga%20ingin%20bertanya%20soal%20DanaJalan%20Desa"
-           target="_blank" rel="noopener"
-           onclick="lacakKlikWhatsapp()"
-           class="fixed bottom-20 right-4 z-40 bg-emerald-500 hover:bg-emerald-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center text-2xl">
-            💬
-        </a>
-
-        <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-400 fixed bottom-0 left-0 right-0 z-30 max-w-md mx-auto">
+        <footer class="bg-white border-t border-moss-100 py-3 text-center text-xs text-slate-400 fixed bottom-0 left-0 right-0 z-30 max-w-md mx-auto">
             <p>© 2026 Swadaya Masyarakat Mandiri</p>
         </footer>
     </div>
 
-    <!-- Firebase SDK Logic via Serverless Fetch -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -147,6 +164,8 @@
         let db, auth, provider;
         let currentTab = 'masuk';
         let semuaTransaksi = [];
+        let musimAktifNama = "";
+        let ringkasanTotals = { masuk: 0, keluar: 0 };
 
         function pesanErrorAuth(err) {
             const kode = err?.code || "";
@@ -159,14 +178,12 @@
             };
             return mapping[kode] || ("Gagal login: " + (err?.message || "kesalahan tidak diketahui"));
         }
-
         function pesanErrorFirestore(err) {
             const kode = err?.code || "";
             if (kode === "permission-denied") return "Akses baca laporan ditolak oleh server. Hubungi panitia jika ini terus terjadi.";
             if (kode === "unavailable") return "Server tidak bisa dijangkau. Periksa koneksi internet Anda.";
             return "Gagal memuat data: " + (err?.message || "kesalahan tidak diketahui");
         }
-
         function tampilkanStatusOffline(offline) {
             const el = document.getElementById('status-koneksi');
             if (!el) return;
@@ -179,16 +196,9 @@
         async function loadSystem() {
             try {
                 const response = await fetch('/api/config');
-
-                if (!response.ok) {
-                    throw new Error("Gagal terhubung ke API Vercel (Status: " + response.status + "). Pastikan letak file api/config.js Anda sudah benar.");
-                }
-
+                if (!response.ok) throw new Error("Gagal terhubung ke API Vercel (Status: " + response.status + ").");
                 const config = await response.json();
-
-                if (!config.apiKey || config.apiKey === "") {
-                    throw new Error("Kunci Firebase masih kosong. Periksa apakah Environment Variables di Dashboard Vercel Anda sudah tersimpan dengan benar.");
-                }
+                if (!config.apiKey || config.apiKey === "") throw new Error("Kunci Firebase masih kosong. Periksa Environment Variables di Vercel.");
 
                 const app = initializeApp(config);
                 db = getFirestore(app);
@@ -201,11 +211,8 @@
                     if (user) {
                         document.getElementById('warga-auth-screen').classList.add('hidden');
                         const namaTersimpan = localStorage.getItem('nama_warga_tercatat');
-                        if (namaTersimpan) {
-                            tampilkanDashboard(namaTersimpan);
-                        } else {
-                            document.getElementById('warga-nama-screen').classList.remove('hidden');
-                        }
+                        if (namaTersimpan) tampilkanDashboard(namaTersimpan);
+                        else document.getElementById('warga-nama-screen').classList.remove('hidden');
                     } else {
                         document.getElementById('warga-auth-screen').classList.remove('hidden');
                         document.getElementById('warga-nama-screen').classList.add('hidden');
@@ -218,8 +225,7 @@
                         <p class="text-rose-400 font-bold text-sm">❌ Terjadi Kendala Sistem</p>
                         <p class="text-slate-300 text-xs mt-2 text-left bg-slate-950 p-3 rounded-lg overflow-auto break-words">${err.message}</p>
                         <button onclick="location.reload()" class="mt-4 bg-slate-700 hover:bg-slate-600 text-white text-xs px-4 py-2 rounded-lg font-semibold">🔄 Segarkan Halaman</button>
-                    </div>
-                `;
+                    </div>`;
             }
         }
 
@@ -229,21 +235,14 @@
             errEl.classList.add('hidden');
             btn.disabled = true;
             signInWithPopup(auth, provider)
-                .catch(err => {
-                    errEl.textContent = pesanErrorAuth(err);
-                    errEl.classList.remove('hidden');
-                })
+                .catch(err => { errEl.textContent = pesanErrorAuth(err); errEl.classList.remove('hidden'); })
                 .finally(() => { btn.disabled = false; });
         };
 
         window.simpanNamaWarga = function() {
             const errEl = document.getElementById('error-nama-msg');
             const nama = document.getElementById('input-nama-warga').value.trim();
-            if (!nama) {
-                errEl.textContent = "Nama tidak boleh kosong.";
-                errEl.classList.remove('hidden');
-                return;
-            }
+            if (!nama) { errEl.textContent = "Nama tidak boleh kosong."; errEl.classList.remove('hidden'); return; }
             errEl.classList.add('hidden');
             localStorage.setItem('nama_warga_tercatat', nama);
             tampilkanDashboard(nama);
@@ -254,34 +253,79 @@
             document.getElementById('main-dashboard-content').classList.remove('hidden');
             document.getElementById('salam-warga').textContent = "Warga: " + nama;
             initSistem();
+            muatPeraturanWarga();
+            muatDaftarPanitiaWarga();
         }
 
         window.logoutWarga = function() {
             localStorage.removeItem('nama_warga_tercatat');
-            signOut(auth).then(() => { location.reload(); });
+            signOut(auth).then(() => location.reload());
         };
 
         function formatRupiah(angka) { return "Rp " + Number(angka).toLocaleString('id-ID'); }
 
-        // Kirim event klik tombol WhatsApp ke Google Analytics (GA4)
         window.lacakKlikWhatsapp = function() {
             if (typeof gtag === 'function') {
-                gtag('event', 'klik_whatsapp_warga', {
-                    event_category: 'engagement',
-                    event_label: 'Tombol Hubungi Panitia WhatsApp'
-                });
+                gtag('event', 'klik_whatsapp_warga', { event_category: 'engagement', event_label: 'Bagikan Ringkasan WhatsApp' });
             }
         };
+
+        function perbaruiTombolWhatsapp() {
+            const teks = `*Ringkasan Kas Swadaya - ${musimAktifNama}*\n\n` +
+                `Total Masuk (Bawon): ${formatRupiah(ringkasanTotals.masuk)}\n` +
+                `Total Pengeluaran: ${formatRupiah(ringkasanTotals.keluar)}\n` +
+                `Sisa Saldo: ${formatRupiah(ringkasanTotals.masuk - ringkasanTotals.keluar)}\n\n` +
+                `Cek detail lengkap & transparan di web DanaJalan Desa.`;
+            document.getElementById('btn-share-whatsapp').href = "https://wa.me/?text=" + encodeURIComponent(teks);
+        }
+
+        async function muatPeraturanWarga() {
+            const el = document.getElementById('teks-peraturan');
+            try {
+                const snap = await getDoc(doc(db, "pengaturan", "umum"));
+                if (snap.exists() && snap.data().peraturan) {
+                    const d = snap.data();
+                    el.textContent = d.peraturan;
+                    if (d.diperbaruiOleh) {
+                        const tgl = d.diperbaruiPada ? new Date(d.diperbaruiPada).toLocaleDateString('id-ID') : "";
+                        document.getElementById('peraturan-info').textContent = "Diperbarui oleh " + d.diperbaruiOleh + (tgl ? " • " + tgl : "");
+                    }
+                } else {
+                    el.textContent = "Belum ada peraturan yang ditetapkan panitia.";
+                }
+            } catch (e) {
+                el.textContent = pesanErrorFirestore(e);
+            }
+        }
+
+        async function muatDaftarPanitiaWarga() {
+            const container = document.getElementById('daftar-panitia-warga');
+            container.innerHTML = `<p class="text-xs text-slate-400">Memuat daftar panitia...</p>`;
+            try {
+                const snap = await getDocs(collection(db, "panitia"));
+                if (snap.empty) { container.innerHTML = `<p class="text-xs text-slate-400">Belum ada panitia terdaftar.</p>`; return; }
+                container.innerHTML = "";
+                snap.forEach(d => {
+                    const p = d.data();
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between bg-moss-50 rounded-lg px-3 py-2";
+                    row.innerHTML = `<span class="text-xs font-bold text-slate-700">${p.nama}</span><span class="text-[10px] text-moss-700 font-semibold bg-moss-100 px-2 py-0.5 rounded-full">${p.jabatan}</span>`;
+                    container.appendChild(row);
+                });
+            } catch (e) {
+                container.innerHTML = `<p class="text-xs text-rose-500">${pesanErrorFirestore(e)}</p>`;
+            }
+        }
 
         window.switchTab = function(tab) {
             currentTab = tab;
             const btnMasuk = document.getElementById('btn-masuk');
             const btnKeluar = document.getElementById('btn-keluar');
-            if(tab === 'masuk') {
-                btnMasuk.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg bg-white text-emerald-700 shadow-sm";
+            if (tab === 'masuk') {
+                btnMasuk.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg bg-white text-moss-700 shadow-sm";
                 btnKeluar.className = "flex-1 text-center py-2 text-xs font-medium rounded-lg text-slate-600";
             } else {
-                btnKeluar.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg bg-white text-emerald-700 shadow-sm";
+                btnKeluar.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg bg-white text-moss-700 shadow-sm";
                 btnMasuk.className = "flex-1 text-center py-2 text-xs font-medium rounded-lg text-slate-600";
             }
             renderTransaksi();
@@ -293,56 +337,52 @@
             try {
                 const querySnapshot = await getDocs(collection(db, "sesi_musim"));
                 musimSelect.innerHTML = "";
+                if (querySnapshot.empty) { musimSelect.innerHTML = `<option value="">-- Belum ada sesi musim --</option>`; return; }
 
-                if (querySnapshot.empty) {
-                    musimSelect.innerHTML = `<option value="">-- Belum ada sesi musim --</option>`;
-                    return;
-                }
-
-                querySnapshot.forEach((doc) => {
-                    let data = doc.data();
+                querySnapshot.forEach((d) => {
+                    let data = d.data();
                     let opt = document.createElement('option');
-                    opt.value = doc.id;
+                    opt.value = d.id;
                     opt.textContent = data.nama;
-                    if(data.status === 'aktif') opt.selected = true;
+                    if (data.status === 'aktif') opt.selected = true;
                     musimSelect.appendChild(opt);
                 });
                 musimSelect.addEventListener('change', () => muatDataMusim(musimSelect.value));
-                if(musimSelect.value) muatDataMusim(musimSelect.value);
-            } catch(e) {
+                if (musimSelect.value) muatDataMusim(musimSelect.value);
+            } catch (e) {
                 musimSelect.innerHTML = `<option value="">-- Gagal memuat --</option>`;
                 document.getElementById('list-container').innerHTML = `<p class="text-center text-xs text-rose-500 py-6">${pesanErrorFirestore(e)}</p>`;
             }
         }
 
         async function muatDataMusim(musimId) {
-            if(!musimId) return;
-            document.getElementById('list-container').innerHTML = `
-                <div class="animate-pulse space-y-2">
-                    <div class="h-16 bg-slate-200 rounded-xl"></div>
-                    <div class="h-16 bg-slate-200 rounded-xl"></div>
-                    <div class="h-16 bg-slate-200 rounded-xl"></div>
-                </div>`;
+            if (!musimId) return;
+            document.getElementById('list-container').innerHTML = `<div class="animate-pulse space-y-2"><div class="h-16 bg-moss-100 rounded-xl"></div><div class="h-16 bg-moss-100 rounded-xl"></div><div class="h-16 bg-moss-100 rounded-xl"></div></div>`;
             try {
                 const docRef = doc(db, "sesi_musim", musimId);
                 const docSnap = await getDoc(docRef);
-                if(docSnap.exists()) { document.getElementById('info-gaji-text').textContent = formatRupiah(docSnap.data().gajiPanitia || 0); }
+                if (docSnap.exists()) {
+                    document.getElementById('info-gaji-text').textContent = formatRupiah(docSnap.data().gajiPanitia || 0);
+                    musimAktifNama = docSnap.data().nama || "";
+                }
 
                 const q = query(collection(db, "transaksi"), where("musimId", "==", musimId));
                 const querySnapshot = await getDocs(q);
                 semuaTransaksi = [];
                 let totalMasuk = 0; let totalKeluar = 0;
 
-                querySnapshot.forEach((doc) => {
-                    let item = doc.data();
+                querySnapshot.forEach((d) => {
+                    let item = d.data();
                     semuaTransaksi.push(item);
-                    if(item.jenis === 'masuk') totalMasuk += Number(item.nominal);
-                    if(item.jenis === 'keluar') totalKeluar += Number(item.nominal);
+                    if (item.jenis === 'masuk') totalMasuk += Number(item.nominal);
+                    if (item.jenis === 'keluar') totalKeluar += Number(item.nominal);
                 });
 
                 document.getElementById('total-masuk').textContent = formatRupiah(totalMasuk);
                 document.getElementById('total-keluar').textContent = formatRupiah(totalKeluar);
                 document.getElementById('saldo-utama').textContent = formatRupiah(totalMasuk - totalKeluar);
+                ringkasanTotals = { masuk: totalMasuk, keluar: totalKeluar };
+                perbaruiTombolWhatsapp();
                 renderTransaksi();
             } catch (e) {
                 document.getElementById('list-container').innerHTML = `<p class="text-center text-xs text-rose-500 py-6">${pesanErrorFirestore(e)}</p>`;
@@ -353,16 +393,14 @@
             const container = document.getElementById('list-container');
             container.innerHTML = "";
             const filtered = semuaTransaksi.filter(t => t.jenis === currentTab);
-            if(filtered.length === 0) {
-                container.innerHTML = `<p class="text-center text-xs text-slate-400 py-6">Belum ada catatan transaksi.</p>`;
-                return;
-            }
+            if (filtered.length === 0) { container.innerHTML = `<p class="text-center text-xs text-slate-400 py-6">Belum ada catatan transaksi.</p>`; return; }
             filtered.sort((a,b) => b.timestamp - a.timestamp).forEach(t => {
                 let card = document.createElement('div');
-                card.className = "bg-white rounded-xl p-3.5 shadow-sm border border-slate-100 flex justify-between items-center";
+                card.className = "bg-white rounded-xl p-3.5 shadow-sm border border-moss-100 flex justify-between items-center";
                 let htmlDetail = currentTab === 'masuk' ? `<p class="text-xs text-slate-500 font-medium">${t.lokasi} • ${t.jumlahKarung} Karung</p>` : `<p class="text-xs text-slate-500 font-medium">${t.keterangan}</p>`;
-                let dicatatOleh = t.panitia ? `<p class="text-[10px] text-slate-400 mt-0.5">✍️ Dicatat oleh: ${t.panitia}</p>` : '';
-                card.innerHTML = `<div><p class="text-[10px] text-slate-400 font-medium">${t.tanggal}</p><h5 class="text-sm font-bold text-slate-800">${t.nama}</h5>${htmlDetail}${dicatatOleh}</div><div class="text-right"><span class="inline-block ${currentTab === 'masuk' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'} text-xs font-bold px-2 py-1 rounded-lg">${currentTab === 'masuk' ? '+' : '-'}${formatRupiah(t.nominal)}</span></div>`;
+                let dicatatOleh = t.panitia ? `<p class="text-[10px] text-slate-400 mt-0.5">✍️ Dicatat: ${t.panitia}</p>` : '';
+                let diubahOleh = (t.diubahOleh && t.diubahOleh !== t.panitia) ? `<p class="text-[10px] text-amber-600 font-medium">✏️ Diedit: ${t.diubahOleh}</p>` : '';
+                card.innerHTML = `<div><p class="text-[10px] text-slate-400 font-medium">${t.tanggal}</p><h5 class="text-sm font-bold text-slate-800">${t.nama}</h5>${htmlDetail}${dicatatOleh}${diubahOleh}</div><div class="text-right"><span class="inline-block ${currentTab === 'masuk' ? 'bg-moss-50 text-moss-700' : 'bg-rose-50 text-rose-700'} text-xs font-bold px-2 py-1 rounded-lg">${currentTab === 'masuk' ? '+' : '-'}${formatRupiah(t.nominal)}</span></div>`;
                 container.appendChild(card);
             });
         }
