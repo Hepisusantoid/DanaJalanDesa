@@ -10,13 +10,11 @@
 </head>
 <body class="bg-slate-900 text-slate-100 antialiased flex flex-col min-h-screen">
 
-    <!-- LOADING SCREEN -->
     <div id="loading-screen" class="fixed inset-0 bg-slate-950 z-50 flex flex-col items-center justify-center p-4">
         <div class="text-3xl animate-bounce">🔑</div>
-        <p id="loading-status-text" class="text-xs text-slate-500 mt-3 font-medium">Memverifikasi gerbang admin...</p>
+        <p class="text-xs text-slate-500 mt-3 font-medium">Memverifikasi gerbang admin...</p>
     </div>
 
-    <!-- ERROR SCREEN (dengan tombol retry) -->
     <div id="fatal-error-screen" class="fixed inset-0 bg-slate-950 z-50 hidden flex-col items-center justify-center p-4">
         <div class="text-center p-6 bg-slate-800 rounded-2xl max-w-xs mx-auto border border-rose-500/20 space-y-3">
             <p class="text-rose-400 font-bold text-sm">❌ Sistem Admin Bermasalah</p>
@@ -30,7 +28,7 @@
             <div class="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto text-blue-400 text-xl font-bold">🔑</div>
             <div>
                 <h3 class="text-base font-bold text-slate-200">Otorisasi Akun Panitia</h3>
-                <p class="text-xs text-slate-400 mt-1">Anda wajib login menggunakan akun Google yang terdaftar dalam whitelist untuk mengelola anggaran swadaya desa.</p>
+                <p class="text-xs text-slate-400 mt-1">Anda wajib login menggunakan akun Google Super Admin atau Panitia terdaftar untuk mengelola dana swadaya desa.</p>
             </div>
             <button id="btn-login-admin" onclick="loginGoogleAdmin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-2">
                 Sign In dengan Google
@@ -39,11 +37,10 @@
         </div>
     </div>
 
-    <!-- MODAL KONFIRMASI HAPUS -->
     <div id="modal-konfirmasi-hapus" class="fixed inset-0 bg-slate-950/70 z-50 hidden items-center justify-center p-4">
         <div class="bg-slate-800 border border-rose-500/30 rounded-2xl p-5 w-full max-w-sm space-y-4">
-            <h3 class="text-sm font-bold text-rose-400">🗑️ Hapus Catatan Kas?</h3>
-            <p class="text-xs text-slate-400">Data yang dihapus tidak bisa dikembalikan. Pastikan catatan ini memang keliru sebelum melanjutkan.</p>
+            <h3 id="modal-hapus-judul" class="text-sm font-bold text-rose-400">🗑️ Hapus Data?</h3>
+            <p id="modal-hapus-desc" class="text-xs text-slate-400">Data yang dihapus tidak bisa dikembalikan.</p>
             <div class="flex gap-2">
                 <button onclick="tutupModalHapus()" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold py-2.5 rounded-lg">Batal</button>
                 <button id="btn-konfirmasi-hapus" onclick="eksekusiHapus()" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold py-2.5 rounded-lg">Ya, Hapus</button>
@@ -54,14 +51,13 @@
     <div id="admin-main-content" class="hidden flex flex-col min-h-screen">
         <header class="bg-slate-800 border-b border-slate-700 py-3 px-4 sticky top-0 z-30">
             <div class="max-w-md mx-auto flex justify-between items-center">
-                <div class="flex items-center gap-2">
-                    <div>
-                        <h1 class="text-sm font-bold text-slate-200">Ruang Kerja Panitia</h1>
-                        <p id="admin-email-display" class="text-[10px] text-slate-400"></p>
-                    </div>
+                <div>
+                    <h1 class="text-sm font-bold text-slate-200">Ruang Kerja Panitia</h1>
+                    <p id="admin-email-display" class="text-[10px] text-slate-400"></p>
+                    <p id="admin-role-badge" class="text-[9px] font-bold mt-0.5"></p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <span id="status-koneksi" class="text-[10px] px-2 py-1 rounded-lg font-semibold bg-emerald-500/10 text-emerald-400">🟢 Online</span>
+                    <span id="status-koneksi" class="text-[10px] px-2 py-1 rounded-lg font-semibold bg-emerald-500/10 text-emerald-400">🟢</span>
                     <a href="/" class="text-[11px] bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1.5 rounded-lg font-medium transition-all">← Web Warga</a>
                     <button onclick="logoutAdmin()" class="bg-rose-700/80 hover:bg-rose-700 text-white text-xs px-2.5 py-1 rounded-lg">Keluar</button>
                 </div>
@@ -70,15 +66,51 @@
 
         <main class="max-w-md w-full mx-auto px-4 py-4 space-y-5 flex-1 mb-10">
 
+            <!-- KELOLA PANITIA: HANYA TAMPIL UNTUK SUPER ADMIN -->
+            <div id="panel-kelola-panitia" class="bg-slate-800 border border-blue-500/30 rounded-xl p-4 space-y-3 hidden">
+                <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider">👤 Kelola Panitia (Super Admin)</h3>
+                <div class="space-y-2">
+                    <input type="email" id="panitia-email" placeholder="Email Gmail Panitia" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none focus:border-blue-500">
+                    <input type="text" id="panitia-nama" placeholder="Nama Panitia" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none focus:border-blue-500">
+                    <input type="text" id="panitia-jabatan" placeholder="Jabatan (Misal: Bendahara, Sekretaris)" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none focus:border-blue-500">
+                    <p id="panitia-error" class="text-[10px] text-rose-400 hidden"></p>
+                    <button id="btn-tambah-panitia" onclick="tambahPanitia()" class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-xs font-bold py-2.5 rounded-lg transition-all">
+                        + Tambah Panitia
+                    </button>
+                </div>
+                <div id="daftar-panitia-admin" class="space-y-1.5 pt-2 border-t border-slate-700"></div>
+            </div>
+
+            <!-- PENGATURAN PERATURAN DESA -->
             <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
-                <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">🌾 Tambah Sesi Musim Baru</h3>
+                <h3 class="text-xs font-bold text-teal-400 uppercase tracking-wider">📜 Peraturan Swadaya (Tampil ke Warga)</h3>
+                <textarea id="peraturan-text" rows="4" placeholder="Misal: Setiap bawon dipotong Rp 5.000/karung untuk perbaikan jalan desa, disepakati musyawarah tanggal ..." class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none focus:border-teal-500"></textarea>
+                <p id="peraturan-error" class="text-[10px] text-rose-400 hidden"></p>
+                <button id="btn-simpan-peraturan" onclick="simpanPeraturan()" class="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-xs font-bold py-2.5 rounded-lg transition-all">
+                    💾 Simpan Peraturan
+                </button>
+                <p id="peraturan-info-terakhir" class="text-[9px] text-slate-500"></p>
+            </div>
+
+            <!-- SESI MUSIM + GAJI PANITIA (EDITABLE KAPAN SAJA) -->
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 space-y-3">
+                <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wider">🌾 Sesi Musim &amp; Gaji Panitia</h3>
                 <div class="space-y-2">
                     <input type="text" id="musim-nama" placeholder="Contoh: Rendeng 2026 / Gadu 2026" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none focus:border-emerald-500">
-                    <input type="text" inputmode="numeric" id="musim-gaji" placeholder="Anggaran Insentif Panitia (Rp)" oninput="formatInputRibuan(this)" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none focus:border-emerald-500">
+                    <input type="text" inputmode="numeric" id="musim-gaji" placeholder="Anggaran Insentif Panitia (Rp) - misal 500.000" oninput="formatInputRibuan(this)" class="w-full bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none focus:border-emerald-500">
                     <p id="musim-error" class="text-[10px] text-rose-400 hidden"></p>
                     <button id="btn-tambah-musim" onclick="tambahMusim()" class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-xs font-bold py-2.5 rounded-lg transition-all shadow-md">
-                        + Buat Sesi Musim
+                        + Buat Sesi Musim Baru
                     </button>
+                </div>
+
+                <div class="pt-3 border-t border-slate-700 space-y-2">
+                    <label class="text-[10px] text-slate-400 block font-medium">EDIT GAJI PANITIA MUSIM AKTIF</label>
+                    <div class="flex gap-2">
+                        <input type="text" inputmode="numeric" id="edit-gaji-musim" placeholder="Rp" oninput="formatInputRibuan(this)" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg text-xs p-2.5 text-slate-200 outline-none">
+                        <button id="btn-update-gaji" onclick="updateGajiMusim()" class="bg-amber-600 hover:bg-amber-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-xs font-bold px-3 rounded-lg">Update</button>
+                    </div>
+                    <p id="edit-gaji-error" class="text-[10px] text-rose-400 hidden"></p>
                 </div>
             </div>
 
@@ -153,30 +185,29 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, where, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, getDoc, setDoc, query, where, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         let db, auth, provider, allowedEmails = [];
         let activeMusimId = "";
         let currentPanitiaName = "";
+        let currentUserEmail = "";
+        let isSuperAdmin = false;
         let cacheTransaksi = {};
         let idPendingHapus = null;
+        let tipePendingHapus = null; // 'transaksi' atau 'panitia'
 
-        // Batas kewajaran nominal per transaksi (bukan hard block, hanya warning + konfirmasi)
         const BATAS_WAJAR_NOMINAL = 500000000; // Rp 500 juta
 
         // ---------- LIVE FORMATTING TITIK-RIBUAN ----------
-        // Menampilkan titik pemisah ribuan saat mengetik (mis. 1000 -> 1.000), input tetap type=text
         window.formatInputRibuan = function(el) {
             const posisiKursorDariBelakang = el.value.length - el.selectionStart;
-            let angkaBersih = el.value.replace(/\D/g, ''); // buang semua non-digit
+            let angkaBersih = el.value.replace(/\D/g, '');
             if (angkaBersih === '') { el.value = ''; return; }
             el.value = Number(angkaBersih).toLocaleString('id-ID');
             const posisiBaru = el.value.length - posisiKursorDariBelakang;
             el.setSelectionRange(posisiBaru, posisiBaru);
         };
-
-        // Ambil nilai angka murni dari input yang sudah diformat titik-ribuan
         function angkaMurniDari(elId) {
             const raw = document.getElementById(elId).value.trim();
             if (!raw) return null;
@@ -184,7 +215,7 @@
             return bersih === '' ? null : Number(bersih);
         }
 
-        // ---------- MAPPING PESAN ERROR SPESIFIK ----------
+        // ---------- MAPPING ERROR ----------
         function pesanErrorAuth(err) {
             const kode = err?.code || "";
             const mapping = {
@@ -197,28 +228,19 @@
             };
             return mapping[kode] || ("Gagal login: " + (err?.message || "kesalahan tidak diketahui"));
         }
-
         function pesanErrorFirestore(err) {
             const kode = err?.code || "";
-            if (kode === "permission-denied") {
-                return "Akses ditolak oleh server. Akun Anda mungkin belum/tidak terdaftar di whitelist Firestore Rules, meski lolos whitelist tampilan.";
-            }
-            if (kode === "unavailable") {
-                return "Server Firestore tidak bisa dijangkau. Periksa koneksi internet Anda dan coba lagi.";
-            }
+            if (kode === "permission-denied") return "Akses ditolak oleh server. Akun Anda mungkin belum terdaftar sebagai Panitia di Firestore, atau Firestore Rules belum sesuai.";
+            if (kode === "unavailable") return "Server Firestore tidak bisa dijangkau. Periksa koneksi internet Anda.";
             return "Gagal memproses data: " + (err?.message || "kesalahan tidak diketahui");
         }
-
         function tampilkanStatusOffline(offline) {
             const el = document.getElementById('status-koneksi');
             if (!el) return;
-            if (offline) {
-                el.textContent = "🔴 Terputus";
-                el.className = "text-[10px] px-2 py-1 rounded-lg font-semibold bg-rose-500/10 text-rose-400";
-            } else {
-                el.textContent = "🟢 Online";
-                el.className = "text-[10px] px-2 py-1 rounded-lg font-semibold bg-emerald-500/10 text-emerald-400";
-            }
+            el.textContent = offline ? "🔴 Terputus" : "🟢 Online";
+            el.className = offline
+                ? "text-[10px] px-2 py-1 rounded-lg font-semibold bg-rose-500/10 text-rose-400"
+                : "text-[10px] px-2 py-1 rounded-lg font-semibold bg-emerald-500/10 text-emerald-400";
         }
         window.addEventListener('offline', () => tampilkanStatusOffline(true));
         window.addEventListener('online', () => tampilkanStatusOffline(false));
@@ -233,14 +255,9 @@
         async function loadAdminSystem() {
             try {
                 const response = await fetch('/api/config');
-                if (!response.ok) {
-                    throw new Error("Gagal terhubung ke API Vercel Admin (Status: " + response.status + "). Pastikan letak file api/config.js sudah benar.");
-                }
+                if (!response.ok) throw new Error("Gagal terhubung ke API Vercel Admin (Status: " + response.status + ").");
                 const config = await response.json();
-
-                if (!config.apiKey || config.apiKey === "") {
-                    throw new Error("Kunci Firebase masih kosong. Periksa Environment Variables di Dashboard Vercel.");
-                }
+                if (!config.apiKey || config.apiKey === "") throw new Error("Kunci Firebase masih kosong. Periksa Environment Variables di Vercel.");
 
                 const app = initializeApp(config);
                 db = getFirestore(app);
@@ -253,23 +270,55 @@
 
                 document.getElementById('loading-screen').classList.add('hidden');
 
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        const userEmail = user.email.toLowerCase();
-                        if (allowedEmails.includes(userEmail)) {
-                            document.getElementById('admin-auth-screen').classList.add('hidden');
-                            document.getElementById('admin-main-content').classList.remove('hidden');
-                            document.getElementById('admin-email-display').textContent = "Login: " + user.email;
-                            currentPanitiaName = user.displayName || user.email.split('@')[0];
-                            initAdminPanel();
-                        } else {
-                            document.getElementById('error-admin-msg').textContent = "Akses Ditolak! Email (" + user.email + ") tidak terdaftar sebagai Panitia.";
-                            document.getElementById('error-admin-msg').classList.remove('hidden');
-                            signOut(auth);
-                        }
-                    } else {
+                onAuthStateChanged(auth, async (user) => {
+                    if (!user) {
                         document.getElementById('admin-auth-screen').classList.remove('hidden');
                         document.getElementById('admin-main-content').classList.add('hidden');
+                        return;
+                    }
+
+                    const userEmail = user.email.toLowerCase();
+                    currentUserEmail = userEmail;
+                    isSuperAdmin = allowedEmails.includes(userEmail);
+
+                    // Kalau bukan super admin, cek apakah terdaftar sebagai Panitia di Firestore
+                    let isPanitiaFirestore = false;
+                    let dataPanitia = null;
+                    if (!isSuperAdmin) {
+                        try {
+                            const snap = await getDoc(doc(db, "panitia", userEmail));
+                            if (snap.exists()) { isPanitiaFirestore = true; dataPanitia = snap.data(); }
+                        } catch (e) {
+                            // Kalau gagal cek (misal permission-denied karena rules belum publish), anggap tidak berhak
+                            isPanitiaFirestore = false;
+                        }
+                    }
+
+                    if (isSuperAdmin || isPanitiaFirestore) {
+                        document.getElementById('admin-auth-screen').classList.add('hidden');
+                        document.getElementById('admin-main-content').classList.remove('hidden');
+                        document.getElementById('admin-email-display').textContent = "Login: " + user.email;
+                        currentPanitiaName = isSuperAdmin
+                            ? (user.displayName || user.email.split('@')[0])
+                            : (dataPanitia?.nama || user.displayName || user.email.split('@')[0]);
+
+                        const badge = document.getElementById('admin-role-badge');
+                        if (isSuperAdmin) {
+                            badge.textContent = "⭐ Super Admin / Developer";
+                            badge.className = "text-[9px] font-bold mt-0.5 text-amber-400";
+                            document.getElementById('panel-kelola-panitia').classList.remove('hidden');
+                            muatDaftarPanitia();
+                        } else {
+                            badge.textContent = "🧑‍🌾 Panitia" + (dataPanitia?.jabatan ? " - " + dataPanitia.jabatan : "");
+                            badge.className = "text-[9px] font-bold mt-0.5 text-teal-400";
+                        }
+
+                        muatPeraturan();
+                        initAdminPanel();
+                    } else {
+                        document.getElementById('error-admin-msg').textContent = "Akses Ditolak! Email (" + user.email + ") tidak terdaftar sebagai Super Admin maupun Panitia.";
+                        document.getElementById('error-admin-msg').classList.remove('hidden');
+                        signOut(auth);
                     }
                 });
             } catch (err) {
@@ -287,34 +336,118 @@
                     document.getElementById('error-admin-msg').textContent = pesanErrorAuth(err);
                     document.getElementById('error-admin-msg').classList.remove('hidden');
                 })
-                .finally(() => {
-                    btn.disabled = false;
-                    btn.textContent = "Sign In dengan Google";
-                });
+                .finally(() => { btn.disabled = false; btn.textContent = "Sign In dengan Google"; });
         };
-
-        window.logoutAdmin = function() {
-            signOut(auth).then(() => { location.reload(); });
-        };
-
+        window.logoutAdmin = function() { signOut(auth).then(() => location.reload()); };
         window.toggleFormInput = function(jenis) {
-            const khususMasuk = document.getElementById('form-khusus-masuk');
-            khususMasuk.classList.toggle('hidden', jenis !== 'masuk');
+            document.getElementById('form-khusus-masuk').classList.toggle('hidden', jenis !== 'masuk');
         };
-
         function tampilkanErrorForm(elId, pesan) {
             const el = document.getElementById(elId);
             if (!pesan) { el.classList.add('hidden'); el.textContent = ""; return; }
             el.textContent = pesan;
             el.classList.remove('hidden');
         }
-
         function setTombolLoading(btnId, loading, teksNormal, teksLoading) {
             const btn = document.getElementById(btnId);
             btn.disabled = loading;
             btn.textContent = loading ? teksLoading : teksNormal;
         }
 
+        // ---------- KELOLA PANITIA (SUPER ADMIN SAJA) ----------
+        window.tambahPanitia = async function() {
+            tampilkanErrorForm('panitia-error', null);
+            const email = document.getElementById('panitia-email').value.trim().toLowerCase();
+            const nama = document.getElementById('panitia-nama').value.trim();
+            const jabatan = document.getElementById('panitia-jabatan').value.trim();
+
+            if (!email || !email.includes('@')) { tampilkanErrorForm('panitia-error', "Email tidak valid."); return; }
+            if (!nama) { tampilkanErrorForm('panitia-error', "Nama panitia wajib diisi."); return; }
+            if (!jabatan) { tampilkanErrorForm('panitia-error', "Jabatan wajib diisi."); return; }
+
+            setTombolLoading('btn-tambah-panitia', true, "+ Tambah Panitia", "Menyimpan...");
+            try {
+                await setDoc(doc(db, "panitia", email), {
+                    email: email,
+                    nama: nama,
+                    jabatan: jabatan,
+                    ditambahkanOleh: currentPanitiaName,
+                    timestamp: Date.now()
+                });
+                document.getElementById('panitia-email').value = "";
+                document.getElementById('panitia-nama').value = "";
+                document.getElementById('panitia-jabatan').value = "";
+                muatDaftarPanitia();
+            } catch (e) {
+                tampilkanErrorForm('panitia-error', pesanErrorFirestore(e));
+            } finally {
+                setTombolLoading('btn-tambah-panitia', false, "+ Tambah Panitia", "Menyimpan...");
+            }
+        };
+
+        async function muatDaftarPanitia() {
+            const container = document.getElementById('daftar-panitia-admin');
+            container.innerHTML = `<p class="text-[10px] text-slate-500">Memuat daftar panitia...</p>`;
+            try {
+                const snap = await getDocs(collection(db, "panitia"));
+                if (snap.empty) { container.innerHTML = `<p class="text-[10px] text-slate-500">Belum ada panitia terdaftar di Firestore.</p>`; return; }
+                container.innerHTML = "";
+                snap.forEach(d => {
+                    const p = d.data();
+                    const row = document.createElement('div');
+                    row.className = "flex justify-between items-center bg-slate-900 rounded-lg p-2";
+                    row.innerHTML = `
+                        <div>
+                            <p class="text-xs font-bold text-slate-200">${p.nama} <span class="text-[9px] text-teal-400 font-normal">(${p.jabatan})</span></p>
+                            <p class="text-[9px] text-slate-500">${p.email}</p>
+                        </div>
+                        <button onclick="mintaHapus('panitia','${d.id}')" class="text-[10px] text-rose-500 hover:text-rose-400 bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20">Hapus</button>
+                    `;
+                    container.appendChild(row);
+                });
+            } catch (e) {
+                container.innerHTML = `<p class="text-[10px] text-rose-400">${pesanErrorFirestore(e)}</p>`;
+            }
+        }
+
+        // ---------- PERATURAN ----------
+        window.simpanPeraturan = async function() {
+            tampilkanErrorForm('peraturan-error', null);
+            const teks = document.getElementById('peraturan-text').value.trim();
+            if (!teks) { tampilkanErrorForm('peraturan-error', "Peraturan tidak boleh kosong."); return; }
+
+            setTombolLoading('btn-simpan-peraturan', true, "💾 Simpan Peraturan", "Menyimpan...");
+            try {
+                await setDoc(doc(db, "pengaturan", "umum"), {
+                    peraturan: teks,
+                    diperbaruiOleh: currentPanitiaName,
+                    diperbaruiPada: Date.now()
+                });
+                document.getElementById('peraturan-info-terakhir').textContent = "Terakhir diperbarui oleh " + currentPanitiaName + " baru saja.";
+            } catch (e) {
+                tampilkanErrorForm('peraturan-error', pesanErrorFirestore(e));
+            } finally {
+                setTombolLoading('btn-simpan-peraturan', false, "💾 Simpan Peraturan", "Menyimpan...");
+            }
+        };
+
+        async function muatPeraturan() {
+            try {
+                const snap = await getDoc(doc(db, "pengaturan", "umum"));
+                if (snap.exists()) {
+                    const d = snap.data();
+                    document.getElementById('peraturan-text').value = d.peraturan || "";
+                    if (d.diperbaruiOleh) {
+                        const tgl = d.diperbaruiPada ? new Date(d.diperbaruiPada).toLocaleString('id-ID') : "";
+                        document.getElementById('peraturan-info-terakhir').textContent = "Terakhir diperbarui oleh " + d.diperbaruiOleh + (tgl ? " pada " + tgl : "");
+                    }
+                }
+            } catch (e) {
+                tampilkanErrorForm('peraturan-error', pesanErrorFirestore(e));
+            }
+        }
+
+        // ---------- SESI MUSIM ----------
         window.tambahMusim = async function() {
             tampilkanErrorForm('musim-error', null);
             const nama = document.getElementById('musim-nama').value.trim();
@@ -324,18 +457,33 @@
             if (gaji === null) { tampilkanErrorForm('musim-error', "Anggaran insentif panitia wajib diisi."); return; }
             if (isNaN(gaji) || gaji < 0) { tampilkanErrorForm('musim-error', "Anggaran harus berupa angka 0 atau lebih."); return; }
 
-            setTombolLoading('btn-tambah-musim', true, "+ Buat Sesi Musim", "Menyimpan...");
+            setTombolLoading('btn-tambah-musim', true, "+ Buat Sesi Musim Baru", "Menyimpan...");
             try {
-                await addDoc(collection(db, "sesi_musim"), {
-                    nama: nama,
-                    gajiPanitia: gaji,
-                    status: "aktif"
-                });
+                await addDoc(collection(db, "sesi_musim"), { nama: nama, gajiPanitia: gaji, status: "aktif" });
                 alert("Sesi Musim Baru berhasil disimpan!");
                 location.reload();
             } catch (e) {
                 tampilkanErrorForm('musim-error', pesanErrorFirestore(e));
-                setTombolLoading('btn-tambah-musim', false, "+ Buat Sesi Musim", "Menyimpan...");
+                setTombolLoading('btn-tambah-musim', false, "+ Buat Sesi Musim Baru", "Menyimpan...");
+            }
+        };
+
+        window.updateGajiMusim = async function() {
+            tampilkanErrorForm('edit-gaji-error', null);
+            if (!activeMusimId) { tampilkanErrorForm('edit-gaji-error', "Pilih sesi musim dahulu."); return; }
+            const gajiBaru = angkaMurniDari('edit-gaji-musim');
+            if (gajiBaru === null || isNaN(gajiBaru) || gajiBaru < 0) {
+                tampilkanErrorForm('edit-gaji-error', "Masukkan nominal 0 atau lebih.");
+                return;
+            }
+            setTombolLoading('btn-update-gaji', true, "Update", "...");
+            try {
+                await updateDoc(doc(db, "sesi_musim", activeMusimId), { gajiPanitia: gajiBaru });
+                alert("Gaji panitia musim ini berhasil diperbarui!");
+            } catch (e) {
+                tampilkanErrorForm('edit-gaji-error', pesanErrorFirestore(e));
+            } finally {
+                setTombolLoading('btn-update-gaji', false, "Update", "...");
             }
         };
 
@@ -345,16 +493,12 @@
             try {
                 const querySnapshot = await getDocs(collection(db, "sesi_musim"));
                 selectMusim.innerHTML = "";
+                if (querySnapshot.empty) { selectMusim.innerHTML = `<option value="">-- Belum ada sesi musim --</option>`; return; }
 
-                if (querySnapshot.empty) {
-                    selectMusim.innerHTML = `<option value="">-- Belum ada sesi musim --</option>`;
-                    return;
-                }
-
-                querySnapshot.forEach((doc) => {
-                    let data = doc.data();
+                querySnapshot.forEach((d) => {
+                    let data = d.data();
                     let opt = document.createElement('option');
-                    opt.value = doc.id;
+                    opt.value = d.id;
                     opt.textContent = data.nama;
                     if (data.status === 'aktif') opt.selected = true;
                     selectMusim.appendChild(opt);
@@ -364,11 +508,13 @@
                     activeMusimId = selectMusim.value;
                     batalEdit();
                     muatHistoriTransaksi(activeMusimId);
+                    muatGajiMusimKeInputEdit(activeMusimId);
                 });
 
                 if (selectMusim.value) {
                     activeMusimId = selectMusim.value;
                     muatHistoriTransaksi(activeMusimId);
+                    muatGajiMusimKeInputEdit(activeMusimId);
                 }
             } catch (e) {
                 selectMusim.innerHTML = `<option value="">-- Gagal memuat --</option>`;
@@ -376,40 +522,41 @@
             }
         }
 
+        async function muatGajiMusimKeInputEdit(musimId) {
+            if (!musimId) return;
+            try {
+                const snap = await getDoc(doc(db, "sesi_musim", musimId));
+                if (snap.exists()) {
+                    document.getElementById('edit-gaji-musim').value = Number(snap.data().gajiPanitia || 0).toLocaleString('id-ID');
+                }
+            } catch (e) { /* diamkan, bukan alur kritikal */ }
+        }
+
         async function muatHistoriTransaksi(musimId) {
             const container = document.getElementById('admin-list-transaksi');
-            container.innerHTML = `
-                <div class="animate-pulse space-y-2">
-                    <div class="h-14 bg-slate-700/40 rounded-lg"></div>
-                    <div class="h-14 bg-slate-700/40 rounded-lg"></div>
-                    <div class="h-14 bg-slate-700/40 rounded-lg"></div>
-                </div>`;
-
+            container.innerHTML = `<div class="animate-pulse space-y-2"><div class="h-14 bg-slate-700/40 rounded-lg"></div><div class="h-14 bg-slate-700/40 rounded-lg"></div><div class="h-14 bg-slate-700/40 rounded-lg"></div></div>`;
             try {
                 const q = query(collection(db, "transaksi"), where("musimId", "==", musimId));
                 const querySnapshot = await getDocs(q);
                 let listData = [];
                 cacheTransaksi = {};
 
-                querySnapshot.forEach((doc) => {
-                    let d = doc.data();
-                    listData.push({ id: doc.id, ...d });
-                    cacheTransaksi[doc.id] = d;
+                querySnapshot.forEach((d) => {
+                    let item = d.data();
+                    listData.push({ id: d.id, ...item });
+                    cacheTransaksi[d.id] = item;
                 });
 
                 container.innerHTML = "";
-                if (listData.length === 0) {
-                    container.innerHTML = `<p class="text-center text-xs text-slate-500 py-4">Belum ada transaksi di musim ini.</p>`;
-                    return;
-                }
+                if (listData.length === 0) { container.innerHTML = `<p class="text-center text-xs text-slate-500 py-4">Belum ada transaksi di musim ini.</p>`; renderDaftarWarga([]); return; }
 
                 listData.sort((a,b) => b.timestamp - a.timestamp).forEach(t => {
                     let item = document.createElement('div');
                     item.className = "bg-slate-900 rounded-lg p-3 flex justify-between items-center border border-slate-800";
-
                     let labelWarna = t.jenis === 'masuk' ? 'text-emerald-400 bg-emerald-500/10' : 'text-rose-400 bg-rose-500/10';
                     let ttdTambahan = t.jenis === 'masuk' ? `<p class="text-[11px] text-slate-400">${t.lokasi || '-'} • ${t.jumlahKarung || 0} Karung</p>` : `<p class="text-[11px] text-slate-400">Ket: ${t.keterangan || '-'}</p>`;
-                    let petugasInfo = t.panitia ? `<p class="text-[9px] text-slate-500 mt-1">✍️ Oleh: ${t.panitia}</p>` : '';
+                    let petugasInfo = t.panitia ? `<p class="text-[9px] text-slate-500 mt-1">✍️ Dicatat: ${t.panitia}</p>` : '';
+                    let editInfo = (t.diubahOleh && t.diubahOleh !== t.panitia) ? `<p class="text-[9px] text-amber-500">✏️ Diedit: ${t.diubahOleh}</p>` : '';
 
                     item.innerHTML = `
                         <div class="space-y-0.5 max-w-[65%]">
@@ -418,12 +565,13 @@
                             ${ttdTambahan}
                             <p class="text-[10px] text-slate-500">${t.tanggal}</p>
                             ${petugasInfo}
+                            ${editInfo}
                         </div>
                         <div class="text-right flex flex-col items-end justify-between h-full gap-3">
                             <span class="text-xs font-bold ${t.jenis === 'masuk' ? 'text-emerald-400' : 'text-rose-400'}">Rp ${Number(t.nominal).toLocaleString('id-ID')}</span>
                             <div class="flex gap-1.5">
                                 <button onclick="persiapkanEdit('${t.id}')" class="text-[10px] text-amber-400 hover:text-amber-300 font-medium bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20 transition-all">📝 Edit</button>
-                                <button onclick="mintaHapus('${t.id}')" class="text-[10px] text-rose-500 hover:text-rose-400 font-medium bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20 transition-all">🗑️ Hapus</button>
+                                <button onclick="mintaHapus('transaksi','${t.id}')" class="text-[10px] text-rose-500 hover:text-rose-400 font-medium bg-rose-500/10 px-2 py-1 rounded border border-rose-500/20 transition-all">🗑️ Hapus</button>
                             </div>
                         </div>
                     `;
@@ -439,24 +587,14 @@
 
         function renderDaftarWarga(listData) {
             const container = document.getElementById('admin-list-warga');
-            const namaUnik = [...new Set(
-                listData.filter(t => t.jenis === 'masuk').map(t => t.nama.trim())
-            )].sort((a, b) => a.localeCompare(b, 'id'));
-
-            if (namaUnik.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-500">Belum ada warga yang menyetor di musim ini.</p>`;
-                return;
-            }
-
-            container.innerHTML = namaUnik.map(nama =>
-                `<span class="text-[10px] bg-teal-500/10 text-teal-300 px-2.5 py-1 rounded-full border border-teal-500/20">${nama}</span>`
-            ).join('');
+            const namaUnik = [...new Set(listData.filter(t => t.jenis === 'masuk').map(t => t.nama.trim()))].sort((a,b) => a.localeCompare(b, 'id'));
+            if (namaUnik.length === 0) { container.innerHTML = `<p class="text-xs text-slate-500">Belum ada warga yang menyetor di musim ini.</p>`; return; }
+            container.innerHTML = namaUnik.map(nama => `<span class="text-[10px] bg-teal-500/10 text-teal-300 px-2.5 py-1 rounded-full border border-teal-500/20">${nama}</span>`).join('');
         }
 
         window.persiapkanEdit = function(id) {
             const data = cacheTransaksi[id];
             if (!data) return;
-
             document.getElementById('tx-edit-id').value = id;
             document.getElementById('tx-nama').value = data.nama;
             document.getElementById('tx-nominal').value = Number(data.nominal).toLocaleString('id-ID');
@@ -477,7 +615,6 @@
             document.getElementById('btn-submit-tx').className = "w-full bg-amber-600 hover:bg-amber-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-xs font-bold py-3 rounded-lg transition-all shadow-md";
             document.getElementById('btn-submit-tx').textContent = "💾 Perbarui Data Kas";
             document.getElementById('btn-batal-edit').classList.remove('hidden');
-
             document.getElementById('form-tx-title').scrollIntoView({ behavior: 'smooth' });
         };
 
@@ -488,7 +625,6 @@
             document.getElementById('tx-lokasi').value = "";
             document.getElementById('tx-karung').value = "";
             tampilkanErrorForm('tx-form-error', null);
-
             document.getElementById('form-tx-title').textContent = "✍️ Pencatatan Kas Swadaya";
             document.getElementById('form-tx-title').className = "text-xs font-bold text-blue-400 uppercase tracking-wider";
             document.getElementById('btn-submit-tx').className = "w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-xs font-bold py-3 rounded-lg transition-all shadow-md";
@@ -498,7 +634,6 @@
 
         window.simpanTransaksi = async function() {
             tampilkanErrorForm('tx-form-error', null);
-
             if (!activeMusimId) { tampilkanErrorForm('tx-form-error', "Pilih sesi musim terlebih dahulu!"); return; }
 
             const editId = document.getElementById('tx-edit-id').value;
@@ -508,26 +643,18 @@
             const nominal = angkaMurniDari('tx-nominal');
             const karungParsed = angkaMurniDari('tx-karung');
 
-            // ---------- VALIDASI ----------
             if (!nama) { tampilkanErrorForm('tx-form-error', "Nama warga/bos wajib diisi."); return; }
             if (nominal === null) { tampilkanErrorForm('tx-form-error', "Nominal wajib diisi."); return; }
-
-            if (isNaN(nominal) || nominal <= 0) {
-                tampilkanErrorForm('tx-form-error', "Nominal harus berupa angka lebih besar dari 0.");
-                return;
-            }
+            if (isNaN(nominal) || nominal <= 0) { tampilkanErrorForm('tx-form-error', "Nominal harus berupa angka lebih besar dari 0."); return; }
             if (nominal > BATAS_WAJAR_NOMINAL) {
-                const lanjut = confirm("Nominal Rp " + nominal.toLocaleString('id-ID') + " terlihat sangat besar untuk transaksi desa. Lanjutkan simpan?");
+                const lanjut = confirm("Nominal Rp " + nominal.toLocaleString('id-ID') + " terlihat sangat besar. Lanjutkan simpan?");
                 if (!lanjut) return;
             }
 
             let karung = 0;
             if (jenis === 'masuk' && karungParsed !== null) {
                 karung = karungParsed;
-                if (isNaN(karung) || karung < 0) {
-                    tampilkanErrorForm('tx-form-error', "Jumlah karung harus berupa angka 0 atau lebih.");
-                    return;
-                }
+                if (isNaN(karung) || karung < 0) { tampilkanErrorForm('tx-form-error', "Jumlah karung harus berupa angka 0 atau lebih."); return; }
             }
 
             const d = new Date();
@@ -538,26 +665,19 @@
                 jenis: jenis,
                 nama: nama,
                 nominal: nominal,
-                panitia: currentPanitiaName
+                diubahOleh: currentPanitiaName
             };
 
-            if (jenis === 'masuk') {
-                payloadData.lokasi = lokasi || "Lahan Warga";
-                payloadData.jumlahKarung = karung;
-                payloadData.keterangan = "";
-            } else {
-                payloadData.keterangan = nama;
-                payloadData.lokasi = "";
-                payloadData.jumlahKarung = 0;
-            }
+            if (jenis === 'masuk') { payloadData.lokasi = lokasi || "Lahan Warga"; payloadData.jumlahKarung = karung; payloadData.keterangan = ""; }
+            else { payloadData.keterangan = nama; payloadData.lokasi = ""; payloadData.jumlahKarung = 0; }
 
             setTombolLoading('btn-submit-tx', true, editId ? "💾 Perbarui Data Kas" : "💾 Simpan Catatan Kas", "Memproses...");
-
             try {
                 if (editId) {
                     await updateDoc(doc(db, "transaksi", editId), payloadData);
                     alert("Catatan kas berhasil diperbarui!");
                 } else {
+                    payloadData.panitia = currentPanitiaName; // pencatat pertama
                     payloadData.timestamp = d.getTime();
                     payloadData.tanggal = tglOtomatis;
                     await addDoc(collection(db, "transaksi"), payloadData);
@@ -572,30 +692,37 @@
             }
         };
 
-        // ---------- HAPUS DENGAN MODAL KUSTOM ----------
-        window.mintaHapus = function(id) {
+        // ---------- HAPUS (TRANSAKSI ATAU PANITIA) DENGAN MODAL ----------
+        window.mintaHapus = function(tipe, id) {
+            tipePendingHapus = tipe;
             idPendingHapus = id;
+            document.getElementById('modal-hapus-judul').textContent = tipe === 'panitia' ? "🗑️ Hapus Panitia?" : "🗑️ Hapus Catatan Kas?";
+            document.getElementById('modal-hapus-desc').textContent = tipe === 'panitia'
+                ? "Panitia ini tidak akan bisa lagi mengakses panel admin."
+                : "Data yang dihapus tidak bisa dikembalikan.";
             const modal = document.getElementById('modal-konfirmasi-hapus');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
         };
-
         window.tutupModalHapus = function() {
-            idPendingHapus = null;
+            idPendingHapus = null; tipePendingHapus = null;
             const modal = document.getElementById('modal-konfirmasi-hapus');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
         };
-
         window.eksekusiHapus = async function() {
-            if (!idPendingHapus) return;
-            const id = idPendingHapus;
+            if (!idPendingHapus || !tipePendingHapus) return;
+            const id = idPendingHapus, tipe = tipePendingHapus;
             setTombolLoading('btn-konfirmasi-hapus', true, "Ya, Hapus", "Menghapus...");
             try {
-                await deleteDoc(doc(db, "transaksi", id));
-                tutupModalHapus();
-                if (document.getElementById('tx-edit-id').value === id) batalEdit();
-                muatHistoriTransaksi(activeMusimId);
+                if (tipe === 'panitia') {
+                    await deleteDoc(doc(db, "panitia", id));
+                    tutupModalHapus();
+                    muatDaftarPanitia();
+                } else {
+                    await deleteDoc(doc(db, "transaksi", id));
+                    tutupModalHapus();
+                    if (document.getElementById('tx-edit-id').value === id) batalEdit();
+                    muatHistoriTransaksi(activeMusimId);
+                }
             } catch (e) {
                 alert(pesanErrorFirestore(e));
             } finally {
